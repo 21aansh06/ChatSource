@@ -1,19 +1,29 @@
-import { PrismaClient } from '@prisma/client';
-import { env } from '../config/env.js';
+import { PrismaClient } from "@prisma/client";
+import { PrismaNeon } from "@prisma/adapter-neon";
+import { env } from "../config/env";
 
-// Singleton instance of PrismaClient for Neon Postgres relational storage
-declare global {
-  var prismaGlobal: PrismaClient | undefined;
+
+const globalForPrisma = globalThis as {
+    prisma?: PrismaClient;
+};
+
+const connectionString = env.DATABASE_URL;
+
+if (!connectionString) {
+    throw new Error("DATABASE_URL is not defined.");
 }
 
-export const prisma = globalThis.prismaGlobal ?? new PrismaClient({
-  datasources: {
-    db: {
-      url: env.DATABASE_URL,
-    },
-  },
+const adapter = new PrismaNeon({
+    connectionString,
 });
 
-if (process.env.NODE_ENV !== 'production') {
-  globalThis.prismaGlobal = prisma;
+
+export const prisma =
+    globalForPrisma.prisma ??
+    new PrismaClient({
+        adapter,
+    });
+
+if (env.NODE_ENV !== "production") {
+    globalForPrisma.prisma = prisma;
 }

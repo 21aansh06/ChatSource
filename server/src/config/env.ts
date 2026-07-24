@@ -2,6 +2,9 @@ import "dotenv/config";
 import { z } from 'zod';
 
 const envSchema = z.object({
+  NODE_ENV: z
+    .enum(["development", "production", "test"])
+    .default("development"),
   PORT: z.string().default('5000').transform((val) => parseInt(val, 10)),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   REDIS_URL: z.string().min(1, 'REDIS_URL is required'),
@@ -15,7 +18,6 @@ const envSchema = z.object({
   CLERK_SECRET_KEY: z.string().min(1, 'CLERK_SECRET_KEY is required'),
   CLERK_PUBLISHABLE_KEY: z.string().min(1, 'CLERK_PUBLISHABLE_KEY is required'),
   OPENAI_API_KEY: z.string().min(1, 'OPENAI_API_KEY is required'),
-  // Defaults to text-embedding-3-small (1536 dims, cheapest). Override to text-embedding-3-large for higher quality.
   OPENAI_EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
 });
 
