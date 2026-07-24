@@ -22,7 +22,12 @@ export class SourcesController {
         return;
       }
 
-      const source = await SourcesService.createSource(userId, notebookId, validation.data);
+      const source = await SourcesService.createSource(
+        userId,
+        notebookId,
+        validation.data,
+        req.file
+      );
 
       if (!source) {
         res.status(444).json({ error: 'Notebook not found or unauthorized' });

@@ -5,6 +5,10 @@ import { clerkMiddleware } from './infra/clerk.js';
 import { errorHandler } from './middleware/error.js';
 import { notebookRoutes } from './features/notebooks/notebooks.routes.js';
 import { sourceRoutes, directSourceRoutes } from './features/sources/sources.routes.js';
+import { StorageService } from './features/storage/storage.service.js';
+import { SupabaseStorageProvider } from './features/storage/providers/supabase.provider.js';
+
+StorageService.setProvider(new SupabaseStorageProvider());
 
 const app = express();
 

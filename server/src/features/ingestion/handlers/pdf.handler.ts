@@ -3,6 +3,7 @@ import pdfParse from 'pdf-parse';
 import { createWorker } from 'tesseract.js';
 import { IngestionHandler, ExtractedDocument, ProcessedChunk, ExtractedPage } from '../contract/ingestion.handler.js';
 import { chunkPDFDocument } from '../chunking/pdf.chunker.js';
+import { StorageService } from '../../storage/storage.service.js';
 
 export class PDFIngestionHandler implements IngestionHandler {
   readonly sourceType = SourceType.PDF;
@@ -19,12 +20,14 @@ export class PDFIngestionHandler implements IngestionHandler {
       throw new Error(`[PDFIngestionHandler] Missing file key or buffer for PDF source ${source.id}`);
     }
 
-   
     let pdfBuffer: Buffer;
-    if (source.rawText) {
+    if (source.fileKey) {
+      console.log(`[PDFIngestionHandler] Downloading PDF file from Supabase storage key: ${source.fileKey}`);
+      pdfBuffer = await StorageService.download(source.fileKey);
+    } else if (source.rawText) {
       pdfBuffer = Buffer.from(source.rawText, 'base64');
     } else {
-      pdfBuffer = Buffer.from(source.fileKey || '', 'utf-8');
+      throw new Error(`[PDFIngestionHandler] No valid file key or raw text found for source ${source.id}`);
     }
 
     let parsedData: pdfParse.Result;

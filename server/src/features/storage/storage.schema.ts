@@ -8,3 +8,12 @@ export const UploadFileSchema = z.object({
 });
 
 export type UploadFile = z.infer<typeof UploadFileSchema>;
+
+export function parseMulterFile(file: Express.Multer.File): UploadFile {
+  return UploadFileSchema.parse({
+    buffer: file.buffer,
+    mimeType: file.mimetype,
+    originalName: file.originalname,
+    size: file.size,
+  });
+}

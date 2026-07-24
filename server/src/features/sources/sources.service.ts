@@ -1,17 +1,42 @@
+import { randomUUID } from 'crypto';
 import { prisma } from '../../infra/prisma.js';
 import { CreateSourceInput } from './sources.schema.js';
-import { IngestionStatus } from '@prisma/client';
+import { IngestionStatus, SourceType } from '@prisma/client';
 import { enqueueSourceIngestion } from '../ingestion/queue/ingestion.queue.js';
 import { VectorStoreService } from '../ingestion/vectorstore/vectorstore.service.js';
+import { StorageService } from '../storage/storage.service.js';
+import { generateStorageKey } from '../storage/storage.utils.js';
+import { parseMulterFile } from '../storage/storage.schema.js';
 
 export class SourcesService {
-  static async createSource(userId: string, notebookId: string, input: CreateSourceInput) {
+  static async createSource(
+    userId: string,
+    notebookId: string,
+    input: CreateSourceInput,
+    file?: Express.Multer.File
+  ) {
     const notebook = await prisma.notebook.findFirst({
       where: { id: notebookId, userId },
     });
 
     if (!notebook) {
       return null;
+    }
+
+    let fileKey: string | undefined = input.fileKey;
+    let mimeType: string | undefined;
+    let fileSize: number | undefined;
+
+    if (file) {
+      const uploadPayload = parseMulterFile(file);
+      const fileId = randomUUID();
+      const storageKey = generateStorageKey(userId, fileId, 'pdf');
+
+      fileKey = await StorageService.upload(storageKey, uploadPayload);
+      mimeType = uploadPayload.mimeType;
+      fileSize = uploadPayload.size;
+    } else if (input.type === SourceType.PDF && !fileKey) {
+      throw new Error('PDF file upload is required for PDF source type.');
     }
 
     // 2. Create Source record with async PENDING status
@@ -22,7 +47,9 @@ export class SourcesService {
         title: input.title,
         type: input.type,
         status: IngestionStatus.PENDING,
-        fileKey: input.fileKey,
+        fileKey,
+        mimeType,
+        fileSize,
         url: input.url,
         rawText: input.rawText,
       },
