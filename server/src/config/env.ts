@@ -17,8 +17,10 @@ const envSchema = z.object({
   R2_ENDPOINT: z.string().url('R2_ENDPOINT must be a valid URL'),
   CLERK_SECRET_KEY: z.string().min(1, 'CLERK_SECRET_KEY is required'),
   CLERK_PUBLISHABLE_KEY: z.string().min(1, 'CLERK_PUBLISHABLE_KEY is required'),
-  OPENAI_API_KEY: z.string().min(1, 'OPENAI_API_KEY is required'),
-  OPENAI_EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
+  OLLAMA_BASE_URL: z.string().default("http://localhost:11434"),
+  
+  OPENAI_API_KEY: z.string().min(1, 'OPENAI_API_KEY is required').optional(),
+  OPENAI_EMBEDDING_MODEL: z.string().default('text-embedding-3-small').optional(),
 });
 
 const parseResult = envSchema.safeParse(process.env);
