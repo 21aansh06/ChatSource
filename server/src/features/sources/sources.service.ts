@@ -1,11 +1,11 @@
 import { prisma } from '../../infra/prisma.js';
 import { CreateSourceInput } from './sources.schema.js';
 import { IngestionStatus } from '@prisma/client';
+import { enqueueSourceIngestion } from '../ingestion/queue/ingestion.queue.js';
+import { VectorStoreService } from '../ingestion/vectorstore/vectorstore.service.js';
 
 export class SourcesService {
-  
   static async createSource(userId: string, notebookId: string, input: CreateSourceInput) {
-    // 1. Verify Notebook ownership for multi-tenant isolation
     const notebook = await prisma.notebook.findFirst({
       where: { id: notebookId, userId },
     });
@@ -37,14 +37,13 @@ export class SourcesService {
       },
     });
 
+    // 4. Enqueue to BullMQ async ingestion queue (Non-blocking async principle)
+    await enqueueSourceIngestion(source.id);
+
     return source;
   }
 
-  /**
-   * List all sources within a user-owned notebook
-   */
   static async listSourcesByNotebook(userId: string, notebookId: string) {
-    // Multi-tenant check
     const notebook = await prisma.notebook.findFirst({
       where: { id: notebookId, userId },
     });
@@ -65,14 +64,20 @@ export class SourcesService {
     });
   }
 
-  /**
-   * Delete source record owned by authenticated user
-   */
   static async deleteSource(userId: string, sourceId: string) {
-    const result = await prisma.source.deleteMany({
+    const source = await prisma.source.findFirst({
       where: { id: sourceId, userId },
     });
 
-    return result.count > 0;
+    if (!source) {
+      return false;
+    }
+
+    await VectorStoreService.deletePointsBySource(sourceId);
+    await prisma.source.delete({
+      where: { id: sourceId },
+    });
+
+    return true;
   }
 }

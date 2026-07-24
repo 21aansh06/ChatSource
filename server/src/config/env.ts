@@ -14,6 +14,9 @@ const envSchema = z.object({
   R2_ENDPOINT: z.string().url('R2_ENDPOINT must be a valid URL'),
   CLERK_SECRET_KEY: z.string().min(1, 'CLERK_SECRET_KEY is required'),
   CLERK_PUBLISHABLE_KEY: z.string().min(1, 'CLERK_PUBLISHABLE_KEY is required'),
+  OPENAI_API_KEY: z.string().min(1, 'OPENAI_API_KEY is required'),
+  // Defaults to text-embedding-3-small (1536 dims, cheapest). Override to text-embedding-3-large for higher quality.
+  OPENAI_EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
 });
 
 const parseResult = envSchema.safeParse(process.env);
