@@ -18,7 +18,11 @@ const envSchema = z.object({
   CLERK_SECRET_KEY: z.string().min(1, 'CLERK_SECRET_KEY is required'),
   CLERK_PUBLISHABLE_KEY: z.string().min(1, 'CLERK_PUBLISHABLE_KEY is required'),
   OLLAMA_BASE_URL: z.string().default("http://localhost:11434"),
-  
+  MAX_FILE_SIZE_MB: z.coerce.number().default(50),
+  SUPABASE_URL: z.string(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string(),
+  SUPABASE_STORAGE_BUCKET: z.string(),
+
   OPENAI_API_KEY: z.string().min(1, 'OPENAI_API_KEY is required').optional(),
   OPENAI_EMBEDDING_MODEL: z.string().default('text-embedding-3-small').optional(),
 });

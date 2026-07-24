@@ -51,7 +51,9 @@ model Source {
   statusReason  String?         // Details if status is FAILED or delayed
 
   // Input data pointers
-  fileKey       String?         // Cloudflare R2 object key for PDF or uploaded files
+  fileKey       String?         // object key for PDF or any doc
+  mimeType      String?
+  fileSize      Int?
   url           String?         // Website URL for scraped sources
   rawText       String?         // Directly pasted inline raw text
 
