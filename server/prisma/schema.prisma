@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SourceType {
+  PDF
+  WEBSITE
+  TEXT
+  // Future YouTube or other extensions will be added here without schema breaking changes
+}
+
+enum IngestionStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+model Notebook {
+  id          String   @id @default(uuid())
+  userId      String   // Scoped by Clerk User ID for multi-tenant isolation
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  sources      Source[]
+  chunks       Chunk[]
+  chatSessions ChatSession[]
+
+  @@index([userId])
+  @@map("notebooks")
+}
+
+model Source {
+  id            String          @id @default(uuid())
+  notebookId    String
+  userId        String          // Scoped by Clerk User ID for direct data-access security
+  title         String
+  type          SourceType
+  status        IngestionStatus @default(PENDING)
+  statusReason  String?         // Details if status is FAILED or delayed
+
+  // Input data pointers
+  fileKey       String?         // Cloudflare R2 object key for PDF or uploaded files
+  url           String?         // Website URL for scraped sources
+  rawText       String?         // Directly pasted inline raw text
+
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  notebook      Notebook        @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  chunks        Chunk[]
+  ingestionJobs IngestionJob[]
+
+  @@index([notebookId])
+  @@index([userId])
+  @@map("sources")
+}
+
+model IngestionJob {
+  id           String          @id @default(uuid())
+  sourceId     String
+  stage        String          // Pipeline stage: PARSING | CHUNKING | EMBEDDING | STORED
+  status       IngestionStatus @default(PENDING)
+  attempts     Int             @default(0)
+  errorDetails String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  source       Source          @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([sourceId])
+  @@map("ingestion_jobs")
+}
+
+model Chunk {
+  id               String   @id @default(uuid())
+  sourceId         String
+  notebookId       String
+  userId           String   // Multi-tenant Clerk userId
+  chunkIndex       Int      // Sequential chunk position within source
+  content          String   // Text snippet of the chunk
+  tokenCount       Int?     // Approximate token count
+  qdrantPointId    String?  // UUID pointing to vector point in Qdrant Cloud
+
+  // Citation Data Concern: Exact location metadata stored as JSON
+  // PDF: { pageNumber: 4, header: "Section 2.1" }
+  // WEBSITE: { url: "...", anchorId: "#chapter-1", charOffsetStart: 100, charOffsetEnd: 400 }
+  // TEXT: { lineStart: 10, lineEnd: 25, charOffsetStart: 500, charOffsetEnd: 850 }
+  locationMetadata Json
+
+  createdAt        DateTime @default(now())
+
+  source           Source   @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  notebook         Notebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+
+  @@index([sourceId])
+  @@index([notebookId])
+  @@index([userId])
+  @@map("chunks")
+}
+
+model ChatSession {
+  id         String        @id @default(uuid())
+  notebookId String
+  userId     String        // Clerk User ID
+  title      String        @default("New Chat")
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  notebook   Notebook      @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  messages   ChatMessage[]
+
+  @@index([notebookId])
+  @@index([userId])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id          String      @id @default(uuid())
+  sessionId   String
+  role        ChatRole
+  content     String
+  
+  // Citations JSON array storing grounded chunk references used in answer generation
+  // [{ chunkId: "...", sourceId: "...", sourceTitle: "...", location: { pageNumber: 3 }, snippet: "..." }]
+  citations   Json?
+
+  createdAt   DateTime    @default(now())
+
+  chatSession ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("chat_messages")
+}
