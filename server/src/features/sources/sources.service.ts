@@ -80,12 +80,38 @@ export class SourcesService {
     }
 
     return prisma.source.findMany({
-      where: { notebookId, userId },
-      orderBy: { createdAt: 'desc' },
-      include: {
+      where: {
+        notebookId,
+        userId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        title: true,
+        type: true,
+        status: true,
+        statusReason: true,
+        createdAt: true,
+        updatedAt: true,
+        fileSize: true,
+        mimeType: true,
+        url: true,
+
         ingestionJobs: {
-          orderBy: { createdAt: 'desc' },
+          orderBy: {
+            createdAt: "desc",
+          },
           take: 1,
+          select: {
+            id: true,
+            stage: true,
+            status: true,
+            errorDetails: true,
+            createdAt: true,
+            updatedAt: true,
+          },
         },
       },
     });
