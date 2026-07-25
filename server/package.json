@@ -28,7 +28,7 @@
     "express": "^4.21.2",
     "ioredis": "^5.5.0",
     "multer": "^2.2.0",
-    "openai": "^4.82.0",
+    "openai": "^4.104.0",
     "pdf-parse": "^1.1.1",
     "tesseract.js": "^5.1.1",
     "uuid": "^11.1.0",
