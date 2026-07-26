@@ -2,20 +2,12 @@ import "dotenv/config";
 import { z } from 'zod';
 
 const envSchema = z.object({
-  NODE_ENV: z
-    .enum(["development", "production", "test"])
-    .default("development"),
   PORT: z.string().default('5000').transform((val) => parseInt(val, 10)),
   CLIENT_ORIGIN: z.string().default('http://localhost:3000'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   REDIS_URL: z.string().min(1, 'REDIS_URL is required'),
   QDRANT_URL: z.string().url('QDRANT_URL must be a valid URL'),
   QDRANT_API_KEY: z.string().min(1, 'QDRANT_API_KEY is required'),
-  R2_ACCOUNT_ID: z.string().min(1, 'R2_ACCOUNT_ID is required'),
-  R2_ACCESS_KEY_ID: z.string().min(1, 'R2_ACCESS_KEY_ID is required'),
-  R2_SECRET_ACCESS_KEY: z.string().min(1, 'R2_SECRET_ACCESS_KEY is required'),
-  R2_BUCKET_NAME: z.string().min(1, 'R2_BUCKET_NAME is required'),
-  R2_ENDPOINT: z.string().url('R2_ENDPOINT must be a valid URL'),
   CLERK_SECRET_KEY: z.string().min(1, 'CLERK_SECRET_KEY is required'),
   CLERK_PUBLISHABLE_KEY: z.string().min(1, 'CLERK_PUBLISHABLE_KEY is required'),
   OLLAMA_BASE_URL: z.string().default("http://localhost:11434"),
