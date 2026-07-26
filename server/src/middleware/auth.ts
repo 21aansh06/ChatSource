@@ -11,14 +11,14 @@ declare global {
 }
 
 export const requireUserAuth = (req: Request, res: Response, next: NextFunction) => {
-  if (env.NODE_ENV === "development") {
-    const userId = req.header("x-user-id");
+  // if (env.NODE_ENV === "development") {
+  //   const userId = req.header("x-user-id");
 
-    if (userId) {
-      req.userId = userId;
-      return next();
-    }
-  }
+  //   if (userId) {
+  //     req.userId = userId;
+  //     return next();
+  //   }
+  // }
 
   const auth = getAuth(req);
 
