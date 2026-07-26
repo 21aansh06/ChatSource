@@ -1,7 +1,5 @@
 import { Queue } from 'bullmq';
-import { redisConnection } from '../../../infra/redis.js';
-import { Redis } from 'ioredis';
-import { env } from '../../../config/env.js';
+import { redisConnection, createRedisClient } from '../../../infra/redis.js';
 
 export const CHAT_ANSWER_QUEUE_NAME = 'chat-answer';
 
@@ -36,7 +34,7 @@ export const chatAnswerQueue = new Queue<ChatAnswerJobData>(CHAT_ANSWER_QUEUE_NA
 });
 
 // Dedicated Redis client instance for Pub/Sub publishing
-const publisher = new Redis(env.REDIS_URL);
+const publisher = createRedisClient();
 
 /**
  * Helper to publish a real-time event to the Redis Pub/Sub channel for a given chat session

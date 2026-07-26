@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
-import { Redis } from 'ioredis';
-import { env } from '../../../config/env.js';
+import { createRedisClient } from '../../../infra/redis.js';
 
 export class SSEService {
   /**
@@ -15,10 +14,7 @@ export class SSEService {
     res.flushHeaders();
 
     const channel = `chat:stream:${sessionId}`;
-    const subscriber = new Redis(env.REDIS_URL, {
-      lazyConnect: false,
-      maxRetriesPerRequest: null,
-    });
+    const subscriber = createRedisClient();
 
     // Suppress unhandled ioredis socket errors on stream closure/disconnect
     subscriber.on('error', (err: any) => {
@@ -47,7 +43,7 @@ export class SSEService {
       if (isCleanedUp) return;
       isCleanedUp = true;
       try {
-        subscriber.unsubscribe(channel).catch(() => {});
+        subscriber.unsubscribe(channel).catch(() => { });
         subscriber.disconnect(); // Immediate clean disconnect without throwing
       } catch (e) {
         // Ignore disconnect race condition errors
