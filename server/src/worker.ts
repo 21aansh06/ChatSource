@@ -6,8 +6,13 @@ import {
   ingestionEmbedWorker,
 } from './features/ingestion/queue/ingestion.worker.js';
 import { chatAnswerWorker } from './features/chat/queue/chat.worker.js';
+import { StorageService } from './features/storage/storage.service.js';
+import { SupabaseStorageProvider } from './features/storage/providers/supabase.provider.js';
 
 console.log('⚙️  [Worker Process] Initializing Async Worker Daemon...');
+
+// Initialize Storage Provider for Worker process
+StorageService.setProvider(new SupabaseStorageProvider());
 
 // Register pluggable ingestion handlers (PDF, Website, Text)
 registerAllIngestionHandlers();

@@ -15,7 +15,18 @@ export class SSEService {
     res.flushHeaders();
 
     const channel = `chat:stream:${sessionId}`;
-    const subscriber = new Redis(env.REDIS_URL);
+    const subscriber = new Redis(env.REDIS_URL, {
+      lazyConnect: false,
+      maxRetriesPerRequest: null,
+    });
+
+    // Suppress unhandled ioredis socket errors on stream closure/disconnect
+    subscriber.on('error', (err: any) => {
+      if (err?.message?.includes('Connection is closed') || err?.code === 'ECONNABORTED') {
+        return;
+      }
+      console.error('[SSE Service] Redis subscriber error:', err?.message || err);
+    });
 
     console.log(`📡 [SSE Service] Client connected to stream for session: ${sessionId}`);
 
@@ -30,6 +41,18 @@ export class SSEService {
         res.end();
       }
     });
+
+    let isCleanedUp = false;
+    const cleanup = () => {
+      if (isCleanedUp) return;
+      isCleanedUp = true;
+      try {
+        subscriber.unsubscribe(channel).catch(() => {});
+        subscriber.disconnect(); // Immediate clean disconnect without throwing
+      } catch (e) {
+        // Ignore disconnect race condition errors
+      }
+    };
 
     // 3. Relay incoming Redis messages to SSE client
     subscriber.on('message', (_chan, message) => {
@@ -47,11 +70,6 @@ export class SSEService {
         console.error(`[SSE Service] Error parsing stream message:`, err);
       }
     });
-
-    const cleanup = () => {
-      subscriber.unsubscribe(channel);
-      subscriber.quit();
-    };
 
     // Handle client disconnect
     req.on('close', () => {

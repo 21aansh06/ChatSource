@@ -11,6 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ChevronRight, Edit2, Trash2, ArrowLeft, BookOpen, Layers, MessageSquare } from 'lucide-react';
 
 import { SourceList } from '@/features/sources/components/SourceList';
+import { ChatInterface } from '@/features/chat/components/ChatInterface';
+import { useSourcesQuery } from '@/features/sources/api/use-sources';
 
 interface NotebookDetailPageProps {
   params: Promise<{ notebookId: string }>;
@@ -20,9 +22,14 @@ export default function NotebookDetailPage({ params }: NotebookDetailPageProps) 
   const { notebookId } = use(params);
   const router = useRouter();
   const { data: notebook, isLoading, isError, error } = useNotebookQuery(notebookId);
+  const { data: sources } = useSourcesQuery(notebookId);
 
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  const hasReadySources = Boolean(
+    sources?.some((s) => s.status === 'COMPLETED' || s.status === 'READY')
+  );
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-4rem)] w-full">
@@ -114,24 +121,16 @@ export default function NotebookDetailPage({ params }: NotebookDetailPageProps) 
               </div>
             )}
 
-            {/* Workspace Grid: Sources Panel + Chat Session Placeholder */}
+            {/* Workspace Grid: Sources Panel + Chat Session Panel */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Sources Panel */}
-              <div className="lg:col-span-6">
+              <div className="lg:col-span-5">
                 <SourceList notebookId={notebookId} />
               </div>
 
-              {/* Chat Session Panel Placeholder for Step 4 */}
-              <div className="lg:col-span-6 rounded-xl border border-brand-medium bg-card p-6 min-h-[420px] flex flex-col items-center justify-center text-center space-y-3">
-                <div className="h-12 w-12 rounded-xl bg-brand-medium border border-brand-dark flex items-center justify-center text-foreground">
-                  <MessageSquare className="h-6 w-6" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-base text-foreground">Notebook Chat Session</h3>
-                  <p className="text-xs text-muted-foreground mt-1 max-w-xs leading-relaxed">
-                    Real-time SSE token streaming and interactive location citations will be connected in Step 4.
-                  </p>
-                </div>
+              {/* Chat Session Panel */}
+              <div className="lg:col-span-7">
+                <ChatInterface notebookId={notebookId} hasReadySources={hasReadySources} />
               </div>
             </div>
           </div>
