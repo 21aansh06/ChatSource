@@ -65,7 +65,7 @@ export function DeleteSourceDialog({
             type="button"
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
-            className="gap-1.5 bg-primary text-primary-foreground hover:opacity-85"
+            className="gap-1.5 bg-gray-200 text-red-600 hover:opacity-85"
           >
             {deleteMutation.isPending ? (
               <>
@@ -74,7 +74,7 @@ export function DeleteSourceDialog({
               </>
             ) : (
               <>
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-4 w-4 " />
                 <span>Delete Source</span>
               </>
             )}

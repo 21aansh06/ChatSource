@@ -54,7 +54,7 @@ export function SourceCard({ source, onDelete }: SourceCardProps) {
 
           <button
             onClick={() => onDelete(source)}
-            className="rounded-md p-1.5 text-muted-foreground hover:bg-brand-medium hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="rounded-md p-1.5 text-muted-foreground text-red-600 hover:bg-brand-medium hover:text-red-400 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             title="Delete Source"
           >
             <Trash2 className="h-4 w-4" />

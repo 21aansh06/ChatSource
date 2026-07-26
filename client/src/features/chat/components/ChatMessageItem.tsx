@@ -17,7 +17,7 @@ interface ChatMessageItemProps {
   streamError?: string | null;
 }
 
-export function ChatMessageItem({
+export const ChatMessageItem = React.memo(function ChatMessageItem({
   message,
   role: roleProp,
   content: contentProp,
@@ -109,4 +109,4 @@ export function ChatMessageItem({
       </div>
     </div>
   );
-}
+});

@@ -14,7 +14,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
           <div className="inline-flex items-center gap-2 rounded-full border border-brand-dark bg-brand-medium px-3.5 py-1.5 text-xs font-semibold text-foreground mb-6 shadow-xs">
             <Sparkles className="h-3.5 w-3.5" />
-            <span>Next-Generation Notebook RAG Platform</span>
+            <span>Next-Generation ChatSource RAG Platform</span>
           </div>
 
           <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl max-w-3xl mx-auto leading-tight">
@@ -31,7 +31,7 @@ export default function HomePage() {
             ) : isSignedIn ? (
               <Link
                 href="/notebooks"
-                className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-base font-semibold text-primary-foreground shadow-sm hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="cursor-pointer inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-base font-semibold text-primary-foreground shadow-sm hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <span>Go to My Notebooks</span>
                 <ArrowRight className="h-4 w-4" />
@@ -39,13 +39,13 @@ export default function HomePage() {
             ) : (
               <>
                 <SignUpButton mode="modal">
-                  <button className="inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-base font-semibold text-primary-foreground shadow-sm hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                  <button className="cursor-pointer inline-flex items-center gap-2 rounded-md bg-primary px-6 py-3 text-base font-semibold text-primary-foreground shadow-sm hover:opacity-90 transition-opacity focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                     <span>Start Building Notebooks</span>
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 </SignUpButton>
                 <SignInButton mode="modal">
-                  <button className="inline-flex items-center gap-2 rounded-md bg-brand-medium px-5 py-3 text-base font-medium text-foreground border border-brand-dark hover:bg-brand-dark transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                  <button className=" cursor-pointer inline-flex items-center gap-2 rounded-md bg-brand-medium px-5 py-3 text-base font-medium text-foreground border border-brand-dark hover:bg-brand-dark transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                     <span>Sign In</span>
                   </button>
                 </SignInButton>
@@ -125,10 +125,7 @@ export default function HomePage() {
       {/* Footer */}
       <footer className="border-t border-brand-medium bg-brand-light py-6 text-center text-xs text-muted-foreground">
         <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>NotebookLM ChatSource &copy; {new Date().getFullYear()}</span>
-          <span className="font-mono text-[11px] text-muted-foreground">
-            Brand Tokens: #ebedf1 • #d4d8df • #acadb1
-          </span>
+          <span>ChatSource &copy; {new Date().getFullYear()}</span>
         </div>
       </footer>
     </div>

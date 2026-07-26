@@ -14,7 +14,10 @@ StorageService.setProvider(new SupabaseStorageProvider());
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: env.CLIENT_ORIGIN,
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(clerkMiddleware());

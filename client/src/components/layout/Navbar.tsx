@@ -20,7 +20,7 @@ export function Navbar() {
           </div>
           <div className="flex flex-col">
             <span className="font-semibold text-lg leading-none tracking-tight text-foreground">
-              NotebookLM <span className="text-xs font-normal px-1.5 py-0.5 rounded bg-brand-medium border border-brand-dark text-foreground ml-1">Source</span>
+              ChatSource <span className="text-xs font-normal px-1.5 py-0.5 rounded bg-brand-medium border border-brand-dark text-foreground ml-1">Source</span>
             </span>
             <span className="text-xs text-muted-foreground mt-0.5">Ground-Truth RAG Workspace</span>
           </div>
@@ -34,7 +34,7 @@ export function Navbar() {
             <div className="flex items-center gap-4">
               <Link
                 href="/notebooks"
-                className="inline-flex items-center gap-2 text-sm font-medium px-3.5 py-2 rounded-md bg-brand-medium hover:bg-brand-dark transition-colors border border-brand-dark text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                className="cursor-pointer inline-flex items-center gap-2 text-sm font-medium px-3.5 py-2 rounded-md bg-brand-medium hover:bg-brand-dark transition-colors border border-brand-dark text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <FolderKanban className="h-4 w-4" />
                 <span>My Notebooks</span>
@@ -50,12 +50,12 @@ export function Navbar() {
           ) : (
             <div className="flex items-center gap-3">
               <SignInButton mode="modal">
-                <button className="text-sm font-medium px-3.5 py-2 rounded-md hover:bg-brand-medium transition-colors text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                <button className=" cursor-pointer text-sm font-medium px-3.5 py-2 rounded-md hover:bg-brand-medium transition-colors text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                   Sign In
                 </button>
               </SignInButton>
               <SignUpButton mode="modal">
-                <button className="inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-md bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                <button className=" cursor-pointer inline-flex items-center gap-1.5 text-sm font-medium px-4 py-2 rounded-md bg-primary text-primary-foreground hover:opacity-90 transition-opacity shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                   <Sparkles className="h-4 w-4" />
                   <span>Get Started</span>
                 </button>

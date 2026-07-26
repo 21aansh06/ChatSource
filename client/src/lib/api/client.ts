@@ -34,6 +34,30 @@ export class ApiError extends Error {
   }
 }
 
+function getHumanReadableErrorMessage(status: number, defaultMsg?: string): string {
+  if (defaultMsg && !defaultMsg.startsWith('HTTP Error')) {
+    return defaultMsg;
+  }
+  switch (status) {
+    case 401:
+      return 'Your authentication session has expired. Please sign in again.';
+    case 403:
+      return 'You do not have permission to access or modify this notebook.';
+    case 404:
+      return 'The requested resource was not found.';
+    case 413:
+      return 'The uploaded file exceeds the maximum allowed size limit.';
+    case 429:
+      return 'Too many requests. Please wait a moment before trying again.';
+    case 500:
+    case 502:
+    case 503:
+      return 'The server encountered an internal issue. Please try again shortly.';
+    default:
+      return defaultMsg || `An unexpected error occurred (Status ${status}).`;
+  }
+}
+
 /**
  * Centralized, typed API HTTP Client
  * Automatically attaches Authorization header with Clerk Session Token
@@ -69,10 +93,18 @@ async function fetchApi<T>(
 
   const url = `${API_BASE_URL.replace(/\/$/, '')}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+    });
+  } catch (err: any) {
+    throw new ApiError(
+      'Unable to connect to the backend server. Please check your network connection.',
+      0
+    );
+  }
 
   if (!response.ok) {
     let errorDetails: any = null;
@@ -86,10 +118,11 @@ async function fetchApi<T>(
         errorMessage = errorDetails.message;
       }
     } catch {
-      // Ignore JSON parse errors for non-JSON error responses
+      // Ignore JSON parse errors
     }
 
-    throw new ApiError(errorMessage, response.status, errorDetails);
+    const userFriendlyMessage = getHumanReadableErrorMessage(response.status, errorMessage);
+    throw new ApiError(userFriendlyMessage, response.status, errorDetails);
   }
 
   // For 204 No Content

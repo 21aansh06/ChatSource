@@ -4,7 +4,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'NotebookLM ChatSource | Ground-Truth RAG Workspace',
+  title: 'ChatSource | Ground-Truth RAG Workspace',
   description: 'Grounded Notebook RAG platform for parsing, chunking, and chatting with PDFs, Website URLs, and Raw Text sources.',
 };
 

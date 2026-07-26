@@ -60,20 +60,23 @@ export const ingestionParseWorker = new Worker<IngestionParseJobData>(
       });
 
       const processedChunks = await handler.chunkDocument(extractedDoc);
-      await prisma.$transaction(async (tx) => {
-        await tx.chunk.deleteMany({ where: { sourceId } });
-        await tx.chunk.createMany({
-          data: processedChunks.map((c) => ({
-            sourceId: source.id,
-            notebookId: source.notebookId,
-            userId: source.userId,
-            chunkIndex: c.chunkIndex,
-            content: c.content,
-            tokenCount: c.tokenCount,
-            locationMetadata: c.locationMetadata as any,
-          })),
-        });
-      });
+      await prisma.$transaction(
+        async (tx) => {
+          await tx.chunk.deleteMany({ where: { sourceId } });
+          await tx.chunk.createMany({
+            data: processedChunks.map((c) => ({
+              sourceId: source.id,
+              notebookId: source.notebookId,
+              userId: source.userId,
+              chunkIndex: c.chunkIndex,
+              content: c.content,
+              tokenCount: c.tokenCount,
+              locationMetadata: c.locationMetadata as any,
+            })),
+          });
+        },
+        { timeout: 30000 }
+      );
       console.log(`✅ [ParseWorker] Successfully extracted & created ${processedChunks.length} chunks for source ${sourceId}`);
       await ingestionEmbedQueue.add(
         'embed-source',
@@ -152,7 +155,8 @@ export const ingestionEmbedWorker = new Worker<IngestionEmbedJobData>(
               qdrantPointId: VectorStoreService.generatePointId(chunk.sourceId, chunk.chunkIndex),
             },
           })
-        )
+        ),
+        { timeout: 30000 }
       );
       await prisma.source.update({
         where: { id: sourceId },

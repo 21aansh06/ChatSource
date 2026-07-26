@@ -6,6 +6,7 @@ const envSchema = z.object({
     .enum(["development", "production", "test"])
     .default("development"),
   PORT: z.string().default('5000').transform((val) => parseInt(val, 10)),
+  CLIENT_ORIGIN: z.string().default('http://localhost:3000'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   REDIS_URL: z.string().min(1, 'REDIS_URL is required'),
   QDRANT_URL: z.string().url('QDRANT_URL must be a valid URL'),
