@@ -76,7 +76,7 @@ export default function NotebookDetailPage({ params }: NotebookDetailPageProps) 
                 variant="secondary"
                 size="sm"
                 onClick={() => setIsDeleteOpen(true)}
-                className="gap-1.5 text-foreground hover:bg-brand-dark"
+                className="gap-1.5 text-red-600 hover:bg-brand-dark hover:text-red-800"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 <span>Delete</span>

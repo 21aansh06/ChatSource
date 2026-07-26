@@ -159,7 +159,7 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
               "flex items-center justify-center gap-1.5 rounded-md py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
               activeTab === 'PDF'
                 ? "bg-card text-foreground shadow-xs border border-brand-dark"
-                : "text-muted-foreground hover:text-foreground"
+                : "text-muted-foreground hover:text-foreground cursor-pointer"
             )}
           >
             <FileText className="h-4 w-4" />
@@ -173,7 +173,7 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
               "flex items-center justify-center gap-1.5 rounded-md py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
               activeTab === 'WEBSITE'
                 ? "bg-card text-foreground shadow-xs border border-brand-dark"
-                : "text-muted-foreground hover:text-foreground"
+                : "text-muted-foreground hover:text-foreground cursor-pointer"
             )}
           >
             <Globe className="h-4 w-4" />
@@ -187,7 +187,7 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
               "flex items-center justify-center gap-1.5 rounded-md py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
               activeTab === 'TEXT'
                 ? "bg-card text-foreground shadow-xs border border-brand-dark"
-                : "text-muted-foreground hover:text-foreground"
+                : "text-muted-foreground hover:text-foreground cursor-pointer"
             )}
           >
             <AlignLeft className="h-4 w-4" />

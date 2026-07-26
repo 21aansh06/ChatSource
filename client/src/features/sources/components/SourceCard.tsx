@@ -15,6 +15,7 @@ export function SourceCard({ source, onDelete }: SourceCardProps) {
   const latestJob = source.ingestionJobs?.[0];
   const isReady = source.status === 'COMPLETED' || source.status === 'READY';
   const isFailed = source.status === 'FAILED' || source.status === 'NEEDS_REVIEW';
+  const isPending = source.status === 'PENDING' || source.status === 'PROCESSING';
 
   const formattedDate = new Date(source.createdAt).toLocaleDateString('en-US', {
     month: 'short',
@@ -29,8 +30,10 @@ export function SourceCard({ source, onDelete }: SourceCardProps) {
   return (
     <div
       className={cn(
-        "group relative flex flex-col justify-between rounded-xl border p-4 transition-all duration-200 bg-card",
-        isReady ? "border-brand-dark hover:border-primary shadow-2xs" : "border-brand-dark bg-brand-light/70"
+        "group relative flex flex-col justify-between rounded-xl border p-4 transition-all duration-200 bg-card shadow-2xs",
+        isReady && "border-emerald-300 hover:border-emerald-600",
+        isFailed && "border-red-400 bg-red-50/20",
+        isPending && "border-amber-400 bg-amber-50/20"
       )}
     >
       <div>
@@ -54,7 +57,7 @@ export function SourceCard({ source, onDelete }: SourceCardProps) {
 
           <button
             onClick={() => onDelete(source)}
-            className="rounded-md p-1.5 text-muted-foreground text-red-600 hover:bg-brand-medium hover:text-red-400 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className="rounded-md p-1.5 text-red-600 hover:bg-brand-medium hover:text-red-800 cursor-pointer transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             title="Delete Source"
           >
             <Trash2 className="h-4 w-4" />
@@ -88,8 +91,8 @@ export function SourceCard({ source, onDelete }: SourceCardProps) {
 
         {/* Ingestion Failure / Reason Alert */}
         {isFailed && (source.statusReason || latestJob?.errorDetails) && (
-          <div className="mb-3 rounded-lg bg-brand-medium border border-brand-dark p-2.5 text-xs text-foreground flex items-start gap-2">
-            <Info className="h-4 w-4 shrink-0 mt-0.5" />
+          <div className="mb-3 rounded-lg bg-red-50 border border-red-200 p-2.5 text-xs text-red-800 flex items-start gap-2">
+            <Info className="h-4 w-4 shrink-0 mt-0.5 text-red-600" />
             <div className="leading-tight">
               <span className="font-bold block mb-0.5">Ingestion Issue:</span>
               <span className="text-[11px]">{source.statusReason || latestJob?.errorDetails}</span>

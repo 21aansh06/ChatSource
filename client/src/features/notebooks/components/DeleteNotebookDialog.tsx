@@ -66,7 +66,7 @@ export function DeleteNotebookDialog({ notebook, isOpen, onClose, onSuccess }: D
             variant="default"
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
-            className="gap-1.5 bg-primary text-primary-foreground hover:opacity-85"
+            className="gap-1.5 bg-gray-200 text-red-600 hover:opacity-85"
           >
             {deleteMutation.isPending ? (
               <>

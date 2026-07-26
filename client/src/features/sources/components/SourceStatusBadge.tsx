@@ -24,7 +24,7 @@ export function SourceStatusBadge({
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-primary text-primary-foreground shadow-2xs",
+          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-600 text-white shadow-2xs",
           className
         )}
         title="Ready to be queried in notebook chat"
@@ -42,7 +42,7 @@ export function SourceStatusBadge({
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-brand-medium border border-brand-dark text-foreground animate-pulse",
+          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-amber-400 text-white border border-amber-600 animate-pulse",
           className
         )}
         title={processingTitle}
@@ -57,7 +57,7 @@ export function SourceStatusBadge({
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-brand-dark border border-foreground text-foreground",
+          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-red-600 text-white border border-red-700",
           className
         )}
         title={statusReason || 'Ingestion failed or requires review'}
