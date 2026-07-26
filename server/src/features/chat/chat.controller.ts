@@ -1,11 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import { ChatService } from './services/chat.service.js';
+import { SSEService } from './services/sse.service.js';
 import { queryChatSchema } from './schemas/chat.schema.js';
 
 export class ChatController {
   /**
    * POST /api/notebooks/:notebookId/chat
-   * Ask question in a notebook chat session (searches across all notebook sources)
+   * Enqueues answer generation job and returns immediately (202 Accepted)
    */
   static async ask(req: Request, res: Response, next: NextFunction) {
     try {
@@ -22,25 +23,47 @@ export class ChatController {
         return;
       }
 
-      const result = await ChatService.askQuestion(
+      const result = await ChatService.enqueueQuestion(
         userId,
         notebookId,
         validation.data.message,
         validation.data.sessionId
       );
 
-      res.status(200).json({
+      res.status(202).json({
+        status: 'queued',
+        message: 'Answer generation job enqueued',
         sessionId: result.session.id,
-        userMessage: result.userMessage,
-        assistantMessage: result.assistantMessage,
-        citations: result.ragResult.citations,
-        isLowConfidence: result.ragResult.isLowConfidence,
+        userMessageId: result.userMessage.id,
+        streamUrl: result.streamUrl,
       });
     } catch (err: any) {
       if (err?.message?.includes('not found') || err?.message?.includes('unauthorized')) {
         res.status(404).json({ error: err.message });
         return;
       }
+      next(err);
+    }
+  }
+
+  /**
+   * GET /api/notebooks/:notebookId/chat/stream/:sessionId
+   * Server-Sent Events (SSE) streaming endpoint for real-time tokens & citations
+   */
+  static async stream(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.userId!;
+      const { notebookId, sessionId } = req.params;
+
+      // Verify session ownership for multi-tenant isolation
+      const session = await ChatService.getSessionHistory(userId, notebookId, sessionId);
+      if (!session) {
+        res.status(404).json({ error: 'Chat session not found or unauthorized' });
+        return;
+      }
+
+      SSEService.connectSSEStream(req, res, sessionId);
+    } catch (err) {
       next(err);
     }
   }

@@ -1,5 +1,4 @@
 import { LLMProvider } from '../llm/llm.provider.js';
-// import { OpenAILLMProvider } from '../llm/openai.provider.js';
 import { RetrievalService } from './retrieval.service.js';
 import { ScoredChunk } from '../reranker/reranker.interface.js';
 import {
@@ -124,7 +123,6 @@ Respond ONLY in valid JSON with schema: {"faithfulnessScore": number, "relevance
     };
   }
 
-
   private static buildDeterministicCitations(chunks: ScoredChunk[]): CitationItem[] {
     return chunks.map((chunk, idx) => ({
       citationId: idx + 1,
@@ -138,28 +136,32 @@ Respond ONLY in valid JSON with schema: {"faithfulnessScore": number, "relevance
   }
 
   /**
-   * RAG Execution Pipeline
+   * RAG Execution Pipeline with optional Real-Time Token Streaming callback
    */
   static async answerQuestion(
     userId: string,
     notebookId: string,
-    userQuery: string
+    userQuery: string,
+    onToken?: (token: string) => Promise<void> | void
   ): Promise<RAGAnswerResult> {
     const queries = await this.expandQuery(userQuery);
 
-    // 2. Concurrent Qdrant Vector Search hard-scoped to notebookId across all sources
     const { scoredChunks } = await RetrievalService.searchNotebookChunks(
       userId,
       notebookId,
       queries,
-      10, 
-      10 
+      10,
+      10
     );
 
     if (scoredChunks.length === 0 || scoredChunks[0].rerankScore < 0.25) {
       console.log(`[RAGService] Low-confidence triggered: no relevant chunks found in notebook ${notebookId}`);
+      const fallbackText = "I couldn't find sufficient information in the notebook's sources to answer your question confidently.";
+      if (onToken) {
+        await onToken(fallbackText);
+      }
       return {
-        answer: "I couldn't find sufficient information in the notebook's sources to answer your question confidently.",
+        answer: fallbackText,
         citations: [],
         isLowConfidence: true,
         retryAttempts: 0,
@@ -167,7 +169,7 @@ Respond ONLY in valid JSON with schema: {"faithfulnessScore": number, "relevance
     }
 
     const MAX_RETRIES = 2;
-    let selectedChunks = scoredChunks.slice(0, 6); 
+    let selectedChunks = scoredChunks.slice(0, 6);
 
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
       if (attempt === 1) {
@@ -189,13 +191,18 @@ Respond ONLY in valid JSON with schema: {"faithfulnessScore": number, "relevance
 Insert numerical citation markers like [1], [2] whenever referencing specific facts from the sources.
 If the source passages do not contain enough information to answer, state clearly that the answer is unavailable in the sources.`;
 
-      const generatedAnswer = await this.llm.generateCompletion(
-        [
-          { role: 'system', content: answerSystemPrompt },
-          { role: 'user', content: `Source Passages:\n${contextText}\n\nUser Question: ${userQuery}` },
-        ],
-        { temperature: 0.2 }
-      );
+      const promptMessages = [
+        { role: 'system' as const, content: answerSystemPrompt },
+        { role: 'user' as const, content: `Source Passages:\n${contextText}\n\nUser Question: ${userQuery}` },
+      ];
+
+      // Stream completion if callback provided, otherwise standard completion
+      let generatedAnswer = '';
+      if (onToken) {
+        generatedAnswer = await this.llm.streamCompletion(promptMessages, onToken, { temperature: 0.2 });
+      } else {
+        generatedAnswer = await this.llm.generateCompletion(promptMessages, { temperature: 0.2 });
+      }
 
       const judgeResult = await this.judgeAnswer(userQuery, contextText, generatedAnswer);
 
@@ -203,7 +210,6 @@ If the source passages do not contain enough information to answer, state clearl
         `[RAGService] Attempt ${attempt} Judge Scores: Faithfulness=${judgeResult.faithfulnessScore}, Relevance=${judgeResult.relevanceScore}`
       );
 
-      // Quality Threshold Check: faithfulness >= 0.7 AND relevance >= 0.7
       if (judgeResult.faithfulnessScore >= 0.7 && judgeResult.relevanceScore >= 0.7) {
         const citations = this.buildDeterministicCitations(selectedChunks);
         return {
@@ -218,8 +224,9 @@ If the source passages do not contain enough information to answer, state clearl
     }
 
     console.warn(`[RAGService] Retry budget exhausted without passing quality threshold. Falling into low-confidence path.`);
+    const fallbackText = "I couldn't find sufficient information in the notebook's sources to answer your question confidently.";
     return {
-      answer: "I couldn't find sufficient information in the notebook's sources to answer your question confidently.",
+      answer: fallbackText,
       citations: [],
       isLowConfidence: true,
       retryAttempts: MAX_RETRIES,

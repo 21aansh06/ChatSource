@@ -1,18 +1,23 @@
 import { prisma } from '../../../infra/prisma.js';
 import { ChatRole } from '@prisma/client';
-import { RAGService, RAGAnswerResult } from './rag.service.js';
+import { chatAnswerQueue } from '../queue/chat.queue.js';
 
 export class ChatService {
   /**
-   * Process a user question inside a notebook chat session with RAG pipeline
+   * Async HTTP 202 Accepted Workflow:
+   * 1. Validates Notebook ownership for multi-tenant isolation.
+   * 2. Resolves or creates ChatSession.
+   * 3. Persists User ChatMessage record.
+   * 4. Enqueues job to BullMQ chatAnswerQueue (Non-blocking async principle).
+   * 5. Returns HTTP 202 Accepted payload with streaming URL.
    */
-  static async askQuestion(
+  static async enqueueQuestion(
     userId: string,
     notebookId: string,
     message: string,
     sessionId?: string
-  ): Promise<{ session: any; userMessage: any; assistantMessage: any; ragResult: RAGAnswerResult }> {
-    // 1. Multi-tenant check: Verify notebook ownership
+  ): Promise<{ session: any; userMessage: any; streamUrl: string }> {
+    // 1. Verify Notebook ownership for multi-tenant isolation
     const notebook = await prisma.notebook.findFirst({
       where: { id: notebookId, userId },
     });
@@ -21,7 +26,7 @@ export class ChatService {
       throw new Error('Notebook not found or unauthorized access');
     }
 
-    // 2. Get or create ChatSession
+    // 2. Get or Create ChatSession
     let session: any;
     if (sessionId) {
       session = await prisma.chatSession.findFirst({
@@ -49,30 +54,25 @@ export class ChatService {
       },
     });
 
-    // 4. Run RAG Pipeline
-    const ragResult = await RAGService.answerQuestion(userId, notebookId, message);
-
-    // 5. Save Assistant Message with deterministic citations payload
-    const assistantMsgRecord = await prisma.chatMessage.create({
-      data: {
+    // 4. Enqueue BullMQ background job (Returns immediately without blocking HTTP response)
+    await chatAnswerQueue.add(
+      'generate-answer',
+      {
         sessionId: session.id,
-        role: ChatRole.ASSISTANT,
-        content: ragResult.answer,
-        citations: ragResult.citations as any,
+        notebookId,
+        userId,
+        userMessageId: userMsgRecord.id,
+        userMessage: message,
       },
-    });
+      { jobId: `chat-${userMsgRecord.id}` } // Idempotent job ID
+    );
 
-    // Update session timestamp
-    await prisma.chatSession.update({
-      where: { id: session.id },
-      data: { updatedAt: new Date() },
-    });
+    const streamUrl = `/api/notebooks/${notebookId}/chat/stream/${session.id}`;
 
     return {
       session,
       userMessage: userMsgRecord,
-      assistantMessage: assistantMsgRecord,
-      ragResult,
+      streamUrl,
     };
   }
 
@@ -100,7 +100,7 @@ export class ChatService {
   }
 
   /**
-   * Get single chat session message history
+   * Get single chat session message history with citations
    */
   static async getSessionHistory(userId: string, notebookId: string, sessionId: string) {
     const session = await prisma.chatSession.findFirst({
