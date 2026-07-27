@@ -6,40 +6,35 @@ import { errorHandler } from './middleware/error.js';
 import { notebookRoutes } from './features/notebooks/notebooks.routes.js';
 import { sourceRoutes, directSourceRoutes } from './features/sources/sources.routes.js';
 import { chatRoutes } from './features/chat/chat.routes.js';
-import { StorageService } from './features/storage/storage.service.js';
-import { SupabaseStorageProvider } from './features/storage/providers/supabase.provider.js';
 
-StorageService.setProvider(new SupabaseStorageProvider());
+export function createApp() {
+  const app = express();
 
+  app.use(
+    cors({
+      origin: env.CLIENT_ORIGIN,
+      credentials: true,
+    })
+  );
 
-const app = express();
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
-app.use(cors({
-  origin: env.CLIENT_ORIGIN,
-  credentials: true,
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(clerkMiddleware());
+  app.use(clerkMiddleware());
 
+  app.use('/api/notebooks', notebookRoutes);
+  app.use('/api/notebooks/:notebookId/sources', sourceRoutes);
+  app.use('/api/notebooks/:notebookId/chat', chatRoutes);
+  app.use('/api/sources', directSourceRoutes);
 
-app.use('/api/notebooks', notebookRoutes);
-app.use('/api/notebooks/:notebookId/sources', sourceRoutes);
-app.use('/api/notebooks/:notebookId/chat', chatRoutes);
-app.use('/api/sources', directSourceRoutes);
-
-// Root endpoint sanity check
-app.get('/', (_req, res) => {
-  res.json({
-    name: 'ChatSource RAG Server API',
-    status: 'running',
+  app.get('/', (_req, res) => {
+    res.json({
+      name: 'ChatSource RAG Server API',
+      status: 'running',
+    });
   });
-});
 
-app.use(errorHandler);
+  app.use(errorHandler);
 
-app.listen(env.PORT, () => {
-  console.log(`🚀 [API Process] HTTP Server listening on port ${env.PORT}`);
-});
-
-export default app;
+  return app;
+}

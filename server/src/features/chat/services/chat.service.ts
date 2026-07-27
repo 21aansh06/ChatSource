@@ -3,14 +3,6 @@ import { ChatRole } from '@prisma/client';
 import { chatAnswerQueue } from '../queue/chat.queue.js';
 
 export class ChatService {
-  /**
-   * Async HTTP 202 Accepted Workflow:
-   * 1. Validates Notebook ownership for multi-tenant isolation.
-   * 2. Resolves or creates ChatSession.
-   * 3. Persists User ChatMessage record.
-   * 4. Enqueues job to BullMQ chatAnswerQueue (Non-blocking async principle).
-   * 5. Returns HTTP 202 Accepted payload with streaming URL.
-   */
   static async enqueueQuestion(
     userId: string,
     notebookId: string,

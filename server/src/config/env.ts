@@ -18,11 +18,11 @@ const envSchema = z.object({
   SUPABASE_URL: z.string(),
   SUPABASE_SERVICE_ROLE_KEY: z.string(),
   SUPABASE_STORAGE_BUCKET: z.string(),
-  GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required'),
-  GEMINI_MODEL_CHAT: z.string().default('gemini-3.5-flash'),
+  GEMINI_API_KEY: z.string().min(1, 'GEMINI_API_KEY is required').optional(),
+  GEMINI_MODEL_CHAT: z.string().default('gemini-3.5-flash').optional(),
 
-  OPENAI_API_KEY: z.string().min(1, 'OPENAI_API_KEY is required').optional(),
-  OPENAI_EMBEDDING_MODEL: z.string().default('text-embedding-3-small').optional(),
+  OPENAI_API_KEY: z.string().min(1, 'OPENAI_API_KEY is required'),
+  OPENAI_EMBEDDING_MODEL: z.string().default('text-embedding-3-small'),
   OPENAI_MODEL_CHAT: z.string().default('gpt-4o-mini'),
 
 

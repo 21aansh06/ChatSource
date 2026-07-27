@@ -1,13 +1,14 @@
-import { LLMProvider } from '../llm/llm.provider.js';
-import { RetrievalService } from './retrieval.service.js';
-import { ScoredChunk } from '../reranker/reranker.interface.js';
+import { LLMProvider } from "../llm/llm.provider.js";
+import { RetrievalService } from "./retrieval.service.js";
+import { ScoredChunk } from "../reranker/reranker.interface.js";
+
 import {
   queryExpansionSchema,
   judgeResponseSchema,
-  JudgeResponse,
   QueryExpansionResult,
-} from '../schemas/chat.schema.js';
-import { GeminiLLMProvider } from '../llm/gemini.provider.js';
+  JudgeResponse,
+} from "../schemas/chat.schema.js";
+import { OpenAILLMProvider } from "../llm/openai.provider.js";
 
 export interface CitationItem {
   citationId: number;
@@ -29,139 +30,245 @@ export interface RAGAnswerResult {
 }
 
 export class RAGService {
-  private static llm: LLMProvider = new GeminiLLMProvider();
+  private static llm: LLMProvider = new OpenAILLMProvider();
+
+  private static readonly LOW_CONFIDENCE_THRESHOLD = 0.25;
+
+  private static readonly MAX_QUERY_VARIANTS = 6;
 
   static setLLMProvider(provider: LLMProvider): void {
     this.llm = provider;
   }
 
-  private static async expandQuery(userQuery: string): Promise<string[]> {
-    const systemPrompt = `You are a query expansion assistant for a multi-source RAG search engine.
-Given the user's input query, generate a JSON object with:
-1. "stepBackQuery": A broader, higher-level abstract version of the query.
-2. "typoCorrectedQuery": A spelling/grammar corrected version of the query.
-3. "hydePassage": A 2-sentence hypothetical answer paragraph directly answering the query.
-4. "subQuestions": An array of at most 2 decomposed sub-questions.
+  private static async expandQuery(
+    userQuery: string
+  ): Promise<string[]> {
+    const systemPrompt = `
+You are a query expansion assistant for a production RAG search engine.
 
-Respond ONLY with valid JSON.`;
+Given the user's question, return ONLY valid JSON.
+
+Return:
+
+{
+  "stepBackQuery": string,
+  "typoCorrectedQuery": string,
+  "hydePassage": string,
+  "subQuestions": string[]
+}
+
+Rules:
+
+- stepBackQuery should generalize the user's intent.
+- typoCorrectedQuery should only fix spelling or grammar.
+- hydePassage should be exactly two sentences.
+- Generate at most two subQuestions.
+- Never include markdown.
+- Never explain your reasoning.
+`;
 
     try {
-      const rawJson = await this.llm.generateStructuredJSON<QueryExpansionResult>(
-        [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userQuery },
-        ],
-        { temperature: 0.1 }
+      const result =
+        await this.llm.generateStructuredJSON<QueryExpansionResult>(
+          [
+            {
+              role: "system",
+              content: systemPrompt,
+            },
+            {
+              role: "user",
+              content: userQuery,
+            },
+          ],
+          {
+            temperature: 0.1,
+          }
+        );
+
+      const parsed =
+        queryExpansionSchema.safeParse(result);
+
+      if (!parsed.success) {
+        console.warn(
+          "[RAGService] Query expansion schema validation failed."
+        );
+
+        return [userQuery];
+      }
+
+      const data = parsed.data;
+
+      const variants = [
+        userQuery,
+        data.typoCorrectedQuery,
+        data.stepBackQuery,
+        data.hydePassage,
+        ...(data.subQuestions ?? []),
+      ];
+
+      return Array.from(
+        new Set(
+          variants
+            .filter(Boolean)
+            .map((q) => q.trim())
+            .filter((q) => q.length > 0)
+        )
+      ).slice(0, this.MAX_QUERY_VARIANTS);
+    } catch (error) {
+      console.warn(
+        "[RAGService] Query expansion failed.",
+        error
       );
 
-      const parsed = queryExpansionSchema.safeParse(rawJson);
-      if (parsed.success) {
-        const d = parsed.data;
-        const variants = [
-          userQuery,
-          d.typoCorrectedQuery || userQuery,
-          d.stepBackQuery || userQuery,
-          d.hydePassage || userQuery,
-          ...(d.subQuestions || []),
-        ];
-        return Array.from(new Set(variants.filter((q) => q && q.trim().length > 0))).slice(0, 6);
-      }
-    } catch (err) {
-      console.warn(`[RAGService] Query expansion failed, falling back to original query:`, err);
+      return [userQuery];
     }
-
-    return [userQuery];
   }
+
 
   private static async judgeAnswer(
     userQuery: string,
     retrievedContext: string,
     generatedAnswer: string
   ): Promise<JudgeResponse> {
-    const judgePrompt = `You are a strict RAG Quality Judge evaluating an AI answer against retrieved source passages.
-Evaluate the generated answer on two separate 0.0 to 1.0 numeric scores:
+    const judgePrompt = `
+You are a strict RAG evaluation judge.
 
-1. "faithfulnessScore": Is the answer strictly supported by the retrieved passages without outside hallucination? (1.0 = fully supported, 0.0 = completely fabricated).
-2. "relevanceScore": Does the answer directly address the user's question? (1.0 = directly answers question, 0.0 = irrelevant or off-topic).
-3. "reasoning": Brief explanation of the scores.
+Evaluate the generated answer ONLY using the retrieved context.
 
-Respond ONLY in valid JSON with schema: {"faithfulnessScore": number, "relevanceScore": number, "reasoning": string}`;
+Return ONLY valid JSON.
 
-    const judgeMessages = [
-      { role: 'system' as const, content: judgePrompt },
+{
+  "faithfulnessScore": number,
+  "relevanceScore": number,
+  "reasoning": string
+}
+
+Scoring:
+
+faithfulnessScore
+
+1.0 = every statement supported
+
+0.0 = hallucinated
+
+relevanceScore
+
+1.0 = fully answers the user's question
+
+0.0 = irrelevant
+`;
+
+    const messages = [
       {
-        role: 'user' as const,
-        content: `User Question: "${userQuery}"\n\nRetrieved Context:\n${retrievedContext}\n\nGenerated Answer:\n${generatedAnswer}`,
+        role: "system" as const,
+        content: judgePrompt,
+      },
+      {
+        role: "user" as const,
+        content: `
+User Question
+
+${userQuery}
+
+Retrieved Context
+
+${retrievedContext}
+
+Generated Answer
+
+${generatedAnswer}
+`,
       },
     ];
 
-    let rawJudge = await this.llm.generateStructuredJSON<JudgeResponse>(judgeMessages, { temperature: 0.0 });
-    let parseResult = judgeResponseSchema.safeParse(rawJudge);
+    try {
+      const result =
+        await this.llm.generateStructuredJSON<JudgeResponse>(
+          messages,
+          {
+            temperature: 0,
+          }
+        );
 
-    if (!parseResult.success) {
-      console.warn(`[RAGService] Judge output failed schema validation. Re-prompting for schema repair...`);
-      const repairMessages = [
-        ...judgeMessages,
-        { role: 'assistant' as const, content: JSON.stringify(rawJudge) },
-        {
-          role: 'user' as const,
-          content: `Your previous response failed JSON schema validation (${parseResult.error.message}). Please return valid JSON with numeric faithfulnessScore (0-1) and relevanceScore (0-1).`,
-        },
-      ];
-      rawJudge = await this.llm.generateStructuredJSON<JudgeResponse>(repairMessages, { temperature: 0.0 });
-      parseResult = judgeResponseSchema.safeParse(rawJudge);
-    }
+      const parsed =
+        judgeResponseSchema.safeParse(result);
 
-    if (parseResult.success) {
-      return parseResult.data;
+      if (parsed.success) {
+        return parsed.data;
+      }
+
+      console.warn(
+        "[RAGService] Judge schema validation failed."
+      );
+    } catch (error) {
+      console.warn(
+        "[RAGService] Judge failed.",
+        error
+      );
     }
 
     return {
       faithfulnessScore: 0.5,
       relevanceScore: 0.5,
-      reasoning: 'Schema validation fallback',
+      reasoning: "Fallback score",
     };
   }
 
-  private static buildDeterministicCitations(chunks: ScoredChunk[]): CitationItem[] {
-    return chunks.map((chunk, idx) => ({
-      citationId: idx + 1,
+
+  private static buildDeterministicCitations(
+    chunks: ScoredChunk[]
+  ): CitationItem[] {
+    return chunks.map((chunk, index) => ({
+      citationId: index + 1,
       chunkId: chunk.chunkId,
       sourceId: chunk.sourceId,
-      sourceTitle: chunk.sourceTitle || 'Untitled Source',
-      sourceType: chunk.sourceType || 'DOCUMENT',
+      sourceTitle: chunk.sourceTitle ?? "Untitled Source",
+      sourceType: chunk.sourceType ?? "DOCUMENT",
       locationMetadata: chunk.locationMetadata,
-      snippet: chunk.content.slice(0, 150) + '...',
+      snippet:
+        chunk.content.length > 150
+          ? `${chunk.content.slice(0, 150)}...`
+          : chunk.content,
     }));
   }
 
-  /**
-   * RAG Execution Pipeline with optional Real-Time Token Streaming callback
-   */
+
   static async answerQuestion(
     userId: string,
     notebookId: string,
     userQuery: string,
     onToken?: (token: string) => Promise<void> | void
   ): Promise<RAGAnswerResult> {
-    const queries = await this.expandQuery(userQuery);
+    const expandedQueries = await this.expandQuery(userQuery);
 
-    const { scoredChunks } = await RetrievalService.searchNotebookChunks(
-      userId,
-      notebookId,
-      queries,
-      10,
-      10
-    );
+    const { scoredChunks } =
+      await RetrievalService.searchNotebookChunks(
+        userId,
+        notebookId,
+        expandedQueries,
+        10,
+        10
+      );
 
-    if (scoredChunks.length === 0 || scoredChunks[0].rerankScore < 0.25) {
-      console.log(`[RAGService] Low-confidence triggered: no relevant chunks found in notebook ${notebookId}`);
-      const fallbackText = "I couldn't find sufficient information in the notebook's sources to answer your question confidently.";
+    // Step 3 - Low confidence retrieval
+    if (
+      scoredChunks.length === 0 ||
+      scoredChunks[0].rerankScore <
+      this.LOW_CONFIDENCE_THRESHOLD
+    ) {
+      const fallback =
+        "I couldn't find sufficient information in the notebook's sources to answer your question confidently.";
+
+      console.warn(
+        `[RAGService] Low confidence retrieval for notebook ${notebookId}`
+      );
+
       if (onToken) {
-        await onToken(fallbackText);
+        await onToken(fallback);
       }
+
       return {
-        answer: fallbackText,
+        answer: fallback,
         citations: [],
         isLowConfidence: true,
         retryAttempts: 0,
@@ -169,67 +276,143 @@ Respond ONLY in valid JSON with schema: {"faithfulnessScore": number, "relevance
     }
 
     const MAX_RETRIES = 2;
+
     let selectedChunks = scoredChunks.slice(0, 6);
 
-    for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-      if (attempt === 1) {
-        selectedChunks = scoredChunks.slice(0, 8);
-        console.log(`[RAGService] Corrective Retry Attempt 1: Widening candidate pool to 8 chunks...`);
-      } else if (attempt === 2) {
-        selectedChunks = scoredChunks.slice(0, 4);
-        console.log(`[RAGService] Corrective Retry Attempt 2: Sharpening context to top 4 chunks...`);
+    for (
+      let attempt = 0;
+      attempt <= MAX_RETRIES;
+      attempt++
+    ) {
+      switch (attempt) {
+        case 1:
+          selectedChunks = scoredChunks.slice(0, 8);
+
+          console.log(
+            "[RAGService] Retry #1 - widening context."
+          );
+
+          break;
+
+        case 2:
+          selectedChunks = scoredChunks.slice(0, 4);
+
+          console.log(
+            "[RAGService] Retry #2 - narrowing context."
+          );
+
+          break;
       }
 
-      const contextText = selectedChunks
+      // Build Context
+      const context = selectedChunks
         .map(
-          (c, idx) =>
-            `[Source ${idx + 1}: ${c.sourceTitle} (${c.sourceType}) | Location: ${JSON.stringify(c.locationMetadata)}]\n${c.content}`
+          (chunk, index) => `
+[Source ${index + 1}]
+Title: ${chunk.sourceTitle}
+Type: ${chunk.sourceType}
+Location: ${JSON.stringify(
+            chunk.locationMetadata
+          )}
+
+${chunk.content}`
         )
-        .join('\n\n---\n\n');
+        .join("\n\n-----------------------\n\n");
 
-      const answerSystemPrompt = `You are NotebookLM ChatSource assistant. Answer the user's question strictly using ONLY the provided notebook source passages below.
-Insert numerical citation markers like [1], [2] whenever referencing specific facts from the sources.
-If the source passages do not contain enough information to answer, state clearly that the answer is unavailable in the sources.`;
+      const systemPrompt = `
+You are ChatSource, an AI notebook assistant.
 
-      const promptMessages = [
-        { role: 'system' as const, content: answerSystemPrompt },
-        { role: 'user' as const, content: `Source Passages:\n${contextText}\n\nUser Question: ${userQuery}` },
+Answer ONLY using the provided source passages.
+
+Rules:
+
+- Never use outside knowledge.
+- Cite every factual statement using [1], [2], etc.
+- If the answer is unavailable in the sources,
+  clearly state that.
+- Be concise.
+`;
+
+      const prompt = [
+        {
+          role: "system" as const,
+          content: systemPrompt,
+        },
+        {
+          role: "user" as const,
+          content: `Source Passages:
+
+${context}
+
+User Question:
+
+${userQuery}`,
+        },
       ];
 
-      // Stream completion if callback provided, otherwise standard completion
-      let generatedAnswer = '';
+      let answer = "";
+
       if (onToken) {
-        generatedAnswer = await this.llm.streamCompletion(promptMessages, onToken, { temperature: 0.2 });
+        answer =
+          await this.llm.streamCompletion(
+            prompt,
+            onToken,
+            {
+              temperature: 0,
+            }
+          );
       } else {
-        generatedAnswer = await this.llm.generateCompletion(promptMessages, { temperature: 0.2 });
+        answer =
+          await this.llm.generateCompletion(
+            prompt,
+            {
+              temperature: 0,
+            }
+          );
       }
 
-      const judgeResult = await this.judgeAnswer(userQuery, contextText, generatedAnswer);
+      const judge =
+        await this.judgeAnswer(
+          userQuery,
+          context,
+          answer
+        );
 
       console.log(
-        `[RAGService] Attempt ${attempt} Judge Scores: Faithfulness=${judgeResult.faithfulnessScore}, Relevance=${judgeResult.relevanceScore}`
+        `[RAGService] Attempt ${attempt} | Faithfulness=${judge.faithfulnessScore} | Relevance=${judge.relevanceScore}`
       );
 
-      if (judgeResult.faithfulnessScore >= 0.7 && judgeResult.relevanceScore >= 0.7) {
-        const citations = this.buildDeterministicCitations(selectedChunks);
+      if (
+        judge.faithfulnessScore >= 0.7 &&
+        judge.relevanceScore >= 0.7
+      ) {
         return {
-          answer: generatedAnswer,
-          citations,
+          answer,
+          citations:
+            this.buildDeterministicCitations(
+              selectedChunks
+            ),
           isLowConfidence: false,
-          faithfulnessScore: judgeResult.faithfulnessScore,
-          relevanceScore: judgeResult.relevanceScore,
+          faithfulnessScore:
+            judge.faithfulnessScore,
+          relevanceScore:
+            judge.relevanceScore,
           retryAttempts: attempt,
         };
       }
     }
 
-    console.warn(`[RAGService] Retry budget exhausted without passing quality threshold. Falling into low-confidence path.`);
-    const fallbackText = "I couldn't find sufficient information in the notebook's sources to answer your question confidently.";
+    console.warn(
+      "[RAGService] Retry budget exhausted."
+    );
+
     return {
-      answer: fallbackText,
+      answer:
+        "I couldn't find sufficient information in the notebook's sources to answer your question confidently.",
       citations: [],
       isLowConfidence: true,
       retryAttempts: MAX_RETRIES,
     };
   }
 }
+

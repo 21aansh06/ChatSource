@@ -5,6 +5,7 @@
   "description": "Backend service for NotebookLM RAG platform",
   "main": "dist/api.js",
   "scripts": {
+    "dev": "tsx watch src/server.ts",
     "dev:api": "tsx watch src/api.ts",
     "dev:worker": "tsx watch src/worker.ts",
     "build": "tsc",
