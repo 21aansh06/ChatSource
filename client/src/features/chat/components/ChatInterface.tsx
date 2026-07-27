@@ -36,7 +36,6 @@ export function ChatInterface({ notebookId, hasReadySources }: ChatInterfaceProp
   const [streamingCitations, setStreamingCitations] = useState<CitationItem[]>([]);
   const [streamingIsLowConfidence, setStreamingIsLowConfidence] = useState(false);
   const [streamError, setStreamError] = useState<string | null>(null);
-  const [preStreamMessageCount, setPreStreamMessageCount] = useState<number | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -56,19 +55,21 @@ export function ChatInterface({ notebookId, hasReadySources }: ChatInterfaceProp
     }
   }, [sessions, activeSessionId]);
 
-  // Clear temporary streaming buffer once persisted history catches up with newly added messages
+  const persistedMessages: ChatMessage[] = sessionData?.messages || [];
+
+  // Check if persisted history has received the newly saved Assistant message
+  const lastPersistedMessage = persistedMessages[persistedMessages.length - 1];
+  const hasAssistantMessagePersisted = lastPersistedMessage?.role === 'ASSISTANT';
+
+  // Clear temporary streaming buffer ONLY when the persisted history contains the new Assistant message
   useEffect(() => {
-    if (
-      preStreamMessageCount !== null &&
-      sessionData?.messages &&
-      sessionData.messages.length > preStreamMessageCount
-    ) {
+    if (!isStreaming && hasAssistantMessagePersisted && streamingAssistantContent !== '') {
       setStreamingUserMessage(null);
       setStreamingAssistantContent('');
       setStreamingCitations([]);
-      setPreStreamMessageCount(null);
+      setStreamingIsLowConfidence(false);
     }
-  }, [sessionData?.messages, preStreamMessageCount]);
+  }, [isStreaming, hasAssistantMessagePersisted, streamingAssistantContent]);
 
   // Scroll to bottom when messages or streaming text updates
   const scrollToBottom = () => {
@@ -155,9 +156,6 @@ export function ChatInterface({ notebookId, hasReadySources }: ChatInterfaceProp
   };
 
   const handleSendMessage = async (userText: string) => {
-    const currentCount = sessionData?.messages?.length || 0;
-    setPreStreamMessageCount(currentCount);
-
     setIsStreaming(true);
     setStreamingUserMessage(userText);
     setStreamingAssistantContent('');
@@ -194,22 +192,18 @@ export function ChatInterface({ notebookId, hasReadySources }: ChatInterfaceProp
     setStreamingAssistantContent('');
     setStreamingCitations([]);
     setStreamError(null);
-    setPreStreamMessageCount(null);
   };
 
-  const persistedMessages: ChatMessage[] = sessionData?.messages || [];
+  // User bubble rendering logic: render streaming user bubble only if not yet in persistedMessages
+  const isUserMessagePersisted = persistedMessages.some(
+    (m) => m.role === 'USER' && m.content === streamingUserMessage
+  );
+  const showStreamingUserBubble = streamingUserMessage !== null && !isUserMessagePersisted;
 
-  // Keep streaming bubble visible while streaming OR while waiting for refetched history to arrive
+  // Assistant bubble rendering logic: render streaming assistant bubble immediately when streaming starts (isStreaming === true),
+  // and keep rendering until persisted history has received the assistant message
   const showStreamingAssistantBubble =
-    isStreaming ||
-    (streamingAssistantContent !== '' &&
-      preStreamMessageCount !== null &&
-      persistedMessages.length <= preStreamMessageCount);
-
-  const showStreamingUserBubble =
-    streamingUserMessage !== null &&
-    (isStreaming ||
-      (preStreamMessageCount !== null && persistedMessages.length <= preStreamMessageCount));
+    isStreaming || (streamingAssistantContent !== '' && !hasAssistantMessagePersisted);
 
   return (
     <div className="flex flex-col h-[600px] rounded-xl border border-brand-medium bg-card shadow-xs overflow-hidden">

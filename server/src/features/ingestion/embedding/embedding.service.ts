@@ -1,9 +1,10 @@
 import { EmbeddingProvider } from './provider/embedding.provider.js';
 import { OllamaEmbeddingProvider } from './provider/ollama.provider.js';
+import { OpenAIEmbeddingProvider } from './provider/openai.provider.js';
 
 
 export class EmbeddingService {
-  private static provider: EmbeddingProvider = new OllamaEmbeddingProvider();
+  private static provider: EmbeddingProvider = new OpenAIEmbeddingProvider();
 
   static setProvider(p: EmbeddingProvider): void {
     this.provider = p;

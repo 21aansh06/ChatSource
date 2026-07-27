@@ -60,7 +60,7 @@ export const ChatMessageItem = React.memo(function ChatMessageItem({
       <div className="flex-1 space-y-2 min-w-0">
         <div className="flex items-center justify-between gap-2">
           <span className="text-xs font-bold text-foreground">
-            {isUser ? 'You' : 'NotebookLM Assistant'}
+            {isUser ? 'You' : 'ChatSource Assistant'}
           </span>
           {isStreaming && (
             <span className="text-[11px] font-semibold text-muted-foreground animate-pulse flex items-center gap-1">
