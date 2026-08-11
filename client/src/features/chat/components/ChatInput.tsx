@@ -35,17 +35,17 @@ export function ChatInput({ onSend, isStreaming, hasReadySources }: ChatInputPro
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2">
+    <form onSubmit={handleSubmit} className="space-y-2 font-sans">
       {/* Notice if zero ready sources exist */}
       {!hasReadySources && (
-        <div className="rounded-lg bg-brand-medium border border-brand-dark p-2.5 text-xs text-foreground flex items-center gap-2">
-          <Info className="h-4 w-4 shrink-0" />
+        <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-center gap-2">
+          <Info className="h-4 w-4 shrink-0 text-amber-600" />
           <span>Add at least one ready source to the notebook to enable grounded AI chat.</span>
         </div>
       )}
 
       {/* Input container */}
-      <div className="relative flex items-center rounded-xl border border-brand-dark bg-card shadow-xs focus-within:ring-2 focus-within:ring-primary focus-within:border-primary">
+      <div className="relative flex items-center rounded-2xl border border-slate-200 bg-white shadow-2xs focus-within:ring-2 focus-within:ring-sky-500 focus-within:border-sky-500 transition-all">
         <textarea
           ref={textareaRef}
           value={input}
@@ -58,7 +58,7 @@ export function ChatInput({ onSend, isStreaming, hasReadySources }: ChatInputPro
           }
           rows={2}
           disabled={isStreaming || !hasReadySources}
-          className="w-full resize-none bg-transparent px-4 py-3 text-xs sm:text-sm placeholder:text-muted-foreground focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
+          className="w-full resize-none bg-transparent px-4 py-3 text-xs sm:text-sm placeholder:text-slate-400 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 text-slate-900 leading-relaxed font-sans"
         />
 
         <div className="pr-3">
@@ -66,13 +66,13 @@ export function ChatInput({ onSend, isStreaming, hasReadySources }: ChatInputPro
             type="submit"
             size="sm"
             disabled={!input.trim() || isStreaming || !hasReadySources}
-            className="h-8 w-8 p-0 rounded-lg shrink-0"
+            className="h-9 w-9 p-0 rounded-xl shrink-0 shadow-xs"
             title="Send Message"
           >
             {isStreaming ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin text-sky-400" />
             ) : (
-              <Send className="h-4 w-4" />
+              <Send className="h-4 w-4 text-sky-400" />
             )}
           </Button>
         </div>

@@ -3,7 +3,7 @@
 import React from 'react';
 import { ChatMessage, CitationItem } from '@/lib/api/types';
 import { CitationList } from './CitationList';
-import { Bot, User, AlertTriangle, AlertCircle } from 'lucide-react';
+import { Bot, User, AlertTriangle, AlertCircle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ChatMessageItemProps {
@@ -40,62 +40,62 @@ export const ChatMessageItem = React.memo(function ChatMessageItem({
   return (
     <div
       className={cn(
-        "flex gap-3 p-4 rounded-xl border transition-all duration-200",
+        "flex gap-3 p-4 rounded-2xl border transition-all duration-200 font-sans",
         isUser
-          ? "bg-brand-medium border-brand-dark ml-8 sm:ml-16 shadow-xs"
-          : "bg-card border-brand-medium mr-4 sm:mr-12 shadow-xs"
+          ? "bg-slate-900 border-slate-800 text-white ml-8 sm:ml-16 shadow-xs"
+          : "bg-white border-slate-200/90 text-slate-900 mr-4 sm:mr-12 shadow-2xs"
       )}
     >
       {/* Avatar Icon */}
       <div
         className={cn(
-          "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border text-foreground font-semibold text-xs shadow-2xs",
-          isUser ? "bg-card border-brand-dark" : "bg-brand-medium border-brand-dark"
+          "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl font-semibold text-xs shadow-2xs",
+          isUser ? "bg-slate-800 border border-slate-700 text-sky-400" : "bg-sky-50 border border-sky-100 text-sky-600"
         )}
       >
-        {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4" />}
+        {isUser ? <User className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
       </div>
 
       {/* Message Content Body */}
       <div className="flex-1 space-y-2 min-w-0">
         <div className="flex items-center justify-between gap-2">
-          <span className="text-xs font-bold text-foreground">
+          <span className={cn("text-xs font-bold font-heading", isUser ? "text-slate-200" : "text-slate-900")}>
             {isUser ? 'You' : 'ChatSource Assistant'}
           </span>
           {isStreaming && (
-            <span className="text-[11px] font-semibold text-muted-foreground animate-pulse flex items-center gap-1">
-              <span className="h-2 w-2 rounded-full bg-foreground animate-ping inline-block" />
-              Streaming response...
+            <span className="text-[11px] font-semibold text-sky-600 animate-pulse flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-sky-500 animate-ping inline-block" />
+              Streaming answer...
             </span>
           )}
         </div>
 
         {/* Message Text with Streaming Cursor Indicator */}
-        <div className="text-xs sm:text-sm text-foreground leading-relaxed whitespace-pre-wrap font-sans">
+        <div className={cn("text-xs sm:text-sm leading-relaxed whitespace-pre-wrap font-sans", isUser ? "text-slate-100" : "text-slate-700")}>
           {content}
           {isStreaming && (
-            <span className="inline-block w-1.5 h-4 ml-0.5 bg-foreground animate-pulse align-middle" />
+            <span className="inline-block w-1.5 h-4 ml-0.5 bg-sky-500 animate-pulse align-middle rounded-xs" />
           )}
         </div>
 
         {/* Stream Error Alert Box */}
         {streamError && (
-          <div className="rounded-lg bg-brand-medium border border-brand-dark p-3 text-xs text-foreground flex items-start gap-2.5">
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-foreground" />
+          <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700 flex items-start gap-2.5">
+            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-rose-600" />
             <div>
-              <p className="font-bold">Generation Error</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">{streamError}</p>
+              <p className="font-bold font-heading">Generation Error</p>
+              <p className="text-[11px] text-rose-600 mt-0.5">{streamError}</p>
             </div>
           </div>
         )}
 
         {/* Low Confidence Warning Box */}
         {!isUser && isLowConf && !isStreaming && (
-          <div className="rounded-lg bg-brand-medium border border-brand-dark p-3 text-xs text-foreground flex items-start gap-2.5 mt-2">
-            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+          <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-start gap-2.5 mt-2">
+            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-amber-600" />
             <div className="leading-tight">
-              <p className="font-bold">Low Confidence Notice</p>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
+              <p className="font-bold font-heading">Low Confidence Notice</p>
+              <p className="text-[11px] text-amber-700 mt-0.5">
                 The model could not verify sufficient supporting details in your notebook sources for this answer.
               </p>
             </div>

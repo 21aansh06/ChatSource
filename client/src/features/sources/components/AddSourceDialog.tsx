@@ -149,34 +149,34 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
       title="Add Source Container"
       description="Sources are indexed into background chunks for notebook chat."
     >
-      <div className="space-y-4">
+      <div className="space-y-4 font-sans">
         {/* Source Type Selector Tabs */}
-        <div className="grid grid-cols-3 gap-1 rounded-lg bg-brand-medium p-1 border border-brand-dark">
+        <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 border border-slate-200">
           <button
             type="button"
             onClick={() => setActiveTab('PDF')}
             className={cn(
-              "flex items-center justify-center gap-1.5 rounded-md py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+              "flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500",
               activeTab === 'PDF'
-                ? "bg-card text-foreground shadow-xs border border-brand-dark"
-                : "text-muted-foreground hover:text-foreground cursor-pointer"
+                ? "bg-white text-slate-900 shadow-2xs border border-slate-200"
+                : "text-slate-500 hover:text-slate-900 cursor-pointer"
             )}
           >
-            <FileText className="h-4 w-4" />
-            <span>PDF Document</span>
+            <FileText className="h-4 w-4 text-sky-600" />
+            <span>PDF File</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('WEBSITE')}
             className={cn(
-              "flex items-center justify-center gap-1.5 rounded-md py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+              "flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500",
               activeTab === 'WEBSITE'
-                ? "bg-card text-foreground shadow-xs border border-brand-dark"
-                : "text-muted-foreground hover:text-foreground cursor-pointer"
+                ? "bg-white text-slate-900 shadow-2xs border border-slate-200"
+                : "text-slate-500 hover:text-slate-900 cursor-pointer"
             )}
           >
-            <Globe className="h-4 w-4" />
+            <Globe className="h-4 w-4 text-emerald-600" />
             <span>Website Link</span>
           </button>
 
@@ -184,20 +184,20 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
             type="button"
             onClick={() => setActiveTab('TEXT')}
             className={cn(
-              "flex items-center justify-center gap-1.5 rounded-md py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+              "flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500",
               activeTab === 'TEXT'
-                ? "bg-card text-foreground shadow-xs border border-brand-dark"
-                : "text-muted-foreground hover:text-foreground cursor-pointer"
+                ? "bg-white text-slate-900 shadow-2xs border border-slate-200"
+                : "text-slate-500 hover:text-slate-900 cursor-pointer"
             )}
           >
-            <AlignLeft className="h-4 w-4" />
+            <AlignLeft className="h-4 w-4 text-indigo-600" />
             <span>Raw Text</span>
           </button>
         </div>
 
         {/* Global Mutation Error Display */}
         {createMutation.isError && (
-          <div className="rounded-md bg-brand-medium border border-brand-dark p-3 text-xs text-foreground font-semibold">
+          <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700 font-semibold">
             {createMutation.error?.message || 'Failed to submit source. Please check backend connection.'}
           </div>
         )}
@@ -206,24 +206,24 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
         {activeTab === 'PDF' && (
           <form onSubmit={pdfForm.handleSubmit(onSubmitPDF)} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">Source Title</label>
+              <label className="text-xs font-bold text-slate-900 font-heading">Source Title</label>
               <Input
                 {...pdfForm.register('title')}
                 placeholder="e.g. Annual Financial Report 2025"
                 disabled={createMutation.isPending}
               />
               {pdfForm.formState.errors.title && (
-                <p className="text-xs text-foreground font-semibold">{pdfForm.formState.errors.title.message}</p>
+                <p className="text-xs text-rose-600 font-medium">{pdfForm.formState.errors.title.message}</p>
               )}
             </div>
 
             {/* File Dropzone / Picker */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">PDF File Upload</label>
+              <label className="text-xs font-bold text-slate-900 font-heading">PDF File Upload</label>
               <div
                 className={cn(
-                  "relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-colors bg-brand-light",
-                  selectedFile ? "border-foreground bg-brand-medium/50" : "border-brand-dark hover:border-foreground"
+                  "relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-colors bg-slate-50/70",
+                  selectedFile ? "border-sky-500 bg-sky-50/40" : "border-slate-300 hover:border-slate-400"
                 )}
               >
                 <input
@@ -235,46 +235,46 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
                 />
 
                 {selectedFile ? (
-                  <div className="flex items-center gap-3 text-foreground">
-                    <div className="h-10 w-10 rounded-lg bg-brand-medium border border-brand-dark flex items-center justify-center">
+                  <div className="flex items-center gap-3 text-slate-900">
+                    <div className="h-10 w-10 rounded-xl bg-sky-100 border border-sky-200 flex items-center justify-center text-sky-700">
                       <FileText className="h-5 w-5" />
                     </div>
                     <div className="text-left">
-                      <p className="text-xs font-bold truncate max-w-[220px]">{selectedFile.name}</p>
-                      <p className="text-[11px] text-muted-foreground">
+                      <p className="text-xs font-bold truncate max-w-[220px] font-heading">{selectedFile.name}</p>
+                      <p className="text-[11px] text-slate-500 font-mono">
                         {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB • Ready to upload
                       </p>
                     </div>
-                    <CheckCircle2 className="h-5 w-5 text-foreground ml-2" />
+                    <CheckCircle2 className="h-5 w-5 text-emerald-600 ml-2" />
                   </div>
                 ) : (
                   <div className="flex flex-col items-center space-y-2">
-                    <div className="h-10 w-10 rounded-lg bg-brand-medium border border-brand-dark flex items-center justify-center text-foreground">
+                    <div className="h-10 w-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-sky-600 shadow-2xs">
                       <Upload className="h-5 w-5" />
                     </div>
                     <div className="text-xs">
-                      <span className="font-bold text-foreground">Click to select PDF</span> or drag & drop file
+                      <span className="font-bold text-slate-900">Click to select PDF</span> or drag & drop file
                     </div>
-                    <p className="text-[11px] text-muted-foreground">Supports PDF documents up to 50MB</p>
+                    <p className="text-[11px] text-slate-400">Supports PDF documents up to 50MB</p>
                   </div>
                 )}
               </div>
-              {fileError && <p className="text-xs text-foreground font-semibold">{fileError}</p>}
+              {fileError && <p className="text-xs text-rose-600 font-medium">{fileError}</p>}
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-brand-medium">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
               <Button type="button" variant="outline" onClick={handleClose} disabled={createMutation.isPending}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending || !selectedFile} className="gap-1.5">
+              <Button type="submit" disabled={createMutation.isPending || !selectedFile} className="gap-1.5 shadow-sm">
                 {createMutation.isPending ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin text-sky-400" />
                     <span>Uploading PDF...</span>
                   </>
                 ) : (
                   <>
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-4 w-4 text-sky-400" />
                     <span>Upload & Ingest PDF</span>
                   </>
                 )}
@@ -287,19 +287,19 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
         {activeTab === 'WEBSITE' && (
           <form onSubmit={websiteForm.handleSubmit(onSubmitWebsite)} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">Source Title</label>
+              <label className="text-xs font-bold text-slate-900 font-heading">Source Title</label>
               <Input
                 {...websiteForm.register('title')}
                 placeholder="e.g. TanStack Query Documentation"
                 disabled={createMutation.isPending}
               />
               {websiteForm.formState.errors.title && (
-                <p className="text-xs text-foreground font-semibold">{websiteForm.formState.errors.title.message}</p>
+                <p className="text-xs text-rose-600 font-medium">{websiteForm.formState.errors.title.message}</p>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">Website URL</label>
+              <label className="text-xs font-bold text-slate-900 font-heading">Website URL</label>
               <Input
                 {...websiteForm.register('url')}
                 placeholder="https://example.com/article"
@@ -307,23 +307,23 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
                 disabled={createMutation.isPending}
               />
               {websiteForm.formState.errors.url && (
-                <p className="text-xs text-foreground font-semibold">{websiteForm.formState.errors.url.message}</p>
+                <p className="text-xs text-rose-600 font-medium">{websiteForm.formState.errors.url.message}</p>
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-brand-medium">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
               <Button type="button" variant="outline" onClick={handleClose} disabled={createMutation.isPending}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending} className="gap-1.5">
+              <Button type="submit" disabled={createMutation.isPending} className="gap-1.5 shadow-sm">
                 {createMutation.isPending ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin text-sky-400" />
                     <span>Scraping URL...</span>
                   </>
                 ) : (
                   <>
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-4 w-4 text-sky-400" />
                     <span>Ingest Website URL</span>
                   </>
                 )}
@@ -336,19 +336,19 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
         {activeTab === 'TEXT' && (
           <form onSubmit={textForm.handleSubmit(onSubmitText)} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">Source Title</label>
+              <label className="text-xs font-bold text-slate-900 font-heading">Source Title</label>
               <Input
                 {...textForm.register('title')}
                 placeholder="e.g. Architecture Overview Notes"
                 disabled={createMutation.isPending}
               />
               {textForm.formState.errors.title && (
-                <p className="text-xs text-foreground font-semibold">{textForm.formState.errors.title.message}</p>
+                <p className="text-xs text-rose-600 font-medium">{textForm.formState.errors.title.message}</p>
               )}
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-foreground">Raw Text Content</label>
+              <label className="text-xs font-bold text-slate-900 font-heading">Raw Text Content</label>
               <Textarea
                 {...textForm.register('rawText')}
                 placeholder="Paste raw markdown, meeting notes, code summaries, or transcripts here..."
@@ -356,23 +356,23 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
                 disabled={createMutation.isPending}
               />
               {textForm.formState.errors.rawText && (
-                <p className="text-xs text-foreground font-semibold">{textForm.formState.errors.rawText.message}</p>
+                <p className="text-xs text-rose-600 font-medium">{textForm.formState.errors.rawText.message}</p>
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-brand-medium">
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
               <Button type="button" variant="outline" onClick={handleClose} disabled={createMutation.isPending}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={createMutation.isPending} className="gap-1.5">
+              <Button type="submit" disabled={createMutation.isPending} className="gap-1.5 shadow-sm">
                 {createMutation.isPending ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin text-sky-400" />
                     <span>Saving Text...</span>
                   </>
                 ) : (
                   <>
-                    <Plus className="h-4 w-4" />
+                    <Plus className="h-4 w-4 text-sky-400" />
                     <span>Ingest Raw Text</span>
                   </>
                 )}

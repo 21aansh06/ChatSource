@@ -24,12 +24,12 @@ export function SourceStatusBadge({
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-600 text-white shadow-2xs",
+          "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs",
           className
         )}
         title="Ready to be queried in notebook chat"
       >
-        <CheckCircle2 className="h-3.5 w-3.5" />
+        <CheckCircle2 className="h-3 w-3 text-emerald-600" />
         <span>Ready</span>
       </span>
     );
@@ -37,18 +37,18 @@ export function SourceStatusBadge({
 
   if (normalizedStatus === 'PENDING' || normalizedStatus === 'PROCESSING') {
     const stageInfo = latestStage ? `Stage: ${latestStage}. ` : '';
-    const processingTitle = `Status: ${normalizedStatus}. ${stageInfo}Source is chunking/embedding and not usable for chat yet.`;
+    const processingTitle = `Status: ${normalizedStatus}. ${stageInfo}Source is chunking/embedding...`;
 
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-amber-400 text-white border border-amber-600 animate-pulse",
+          "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 animate-pulse",
           className
         )}
         title={processingTitle}
       >
-        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        <span>{latestStage ? `Ingesting (${latestStage})` : 'Processing...'}</span>
+        <Loader2 className="h-3 w-3 animate-spin text-amber-600" />
+        <span>{latestStage ? `Processing (${latestStage})` : 'Processing...'}</span>
       </span>
     );
   }
@@ -57,13 +57,13 @@ export function SourceStatusBadge({
     return (
       <span
         className={cn(
-          "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold bg-red-600 text-white border border-red-700",
+          "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200",
           className
         )}
         title={statusReason || 'Ingestion failed or requires review'}
       >
-        <AlertCircle className="h-3.5 w-3.5" />
-        <span>{normalizedStatus === 'NEEDS_REVIEW' ? 'Needs Review' : 'Ingestion Failed'}</span>
+        <AlertCircle className="h-3 w-3 text-rose-600" />
+        <span>{normalizedStatus === 'NEEDS_REVIEW' ? 'Needs Review' : 'Failed'}</span>
       </span>
     );
   }
@@ -71,11 +71,11 @@ export function SourceStatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-brand-medium text-foreground",
+        "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600",
         className
       )}
     >
-      <Clock className="h-3.5 w-3.5" />
+      <Clock className="h-3 w-3" />
       <span>{normalizedStatus}</span>
     </span>
   );

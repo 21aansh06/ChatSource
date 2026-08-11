@@ -36,23 +36,23 @@ export function DeleteNotebookDialog({ notebook, isOpen, onClose, onSuccess }: D
       title="Delete Notebook"
     >
       <div className="space-y-4">
-        <div className="flex items-start gap-3 rounded-lg bg-brand-medium border border-brand-dark p-3.5 text-foreground">
-          <AlertTriangle className="h-5 w-5 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 rounded-xl bg-rose-50 border border-rose-200 p-4 text-slate-800">
+          <AlertTriangle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
           <div className="text-xs leading-relaxed">
-            <p className="font-semibold text-sm mb-1">Are you sure you want to delete this notebook?</p>
+            <p className="font-bold text-slate-900 text-sm mb-1 font-heading">Are you sure you want to delete this notebook?</p>
             <p>
-              Deleting <span className="font-bold underline">{notebook.title}</span> will permanently remove the notebook along with all attached sources, vector indexes, and chat session history.
+              Deleting <span className="font-bold text-rose-700">{notebook.title}</span> will permanently remove the notebook container, all attached sources, vector indexes, and chat sessions.
             </p>
           </div>
         </div>
 
         {deleteMutation.isError && (
-          <div className="rounded-md bg-brand-medium border border-brand-dark p-3 text-xs text-foreground font-semibold">
+          <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700 font-semibold">
             {deleteMutation.error?.message || 'Failed to delete notebook.'}
           </div>
         )}
 
-        <div className="flex items-center justify-end gap-2 pt-2 border-t border-brand-medium">
+        <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
           <Button
             type="button"
             variant="outline"
@@ -63,10 +63,10 @@ export function DeleteNotebookDialog({ notebook, isOpen, onClose, onSuccess }: D
           </Button>
           <Button
             type="button"
-            variant="default"
+            variant="destructive"
             onClick={handleDelete}
             disabled={deleteMutation.isPending}
-            className="gap-1.5 bg-gray-200 text-red-600 hover:opacity-85"
+            className="gap-1.5 shadow-sm"
           >
             {deleteMutation.isPending ? (
               <>

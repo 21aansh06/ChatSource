@@ -31,7 +31,6 @@ export function EditNotebookDialog({ notebook, isOpen, onClose }: EditNotebookDi
   const {
     register,
     handleSubmit,
-    reset,
     setValue,
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
@@ -71,35 +70,35 @@ export function EditNotebookDialog({ notebook, isOpen, onClose }: EditNotebookDi
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {updateMutation.isError && (
-          <div className="rounded-md bg-brand-medium border border-brand-dark p-3 text-xs text-foreground font-medium">
+          <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700 font-semibold">
             {updateMutation.error?.message || 'Failed to update notebook.'}
           </div>
         )}
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-foreground">Title</label>
+          <label className="text-xs font-bold text-slate-900 font-heading">Title</label>
           <Input
             {...register('title')}
             disabled={isSubmitting || updateMutation.isPending}
           />
           {errors.title && (
-            <p className="text-xs text-foreground font-semibold">{errors.title.message}</p>
+            <p className="text-xs text-rose-600 font-medium">{errors.title.message}</p>
           )}
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-foreground">Description</label>
+          <label className="text-xs font-bold text-slate-900 font-heading">Description</label>
           <Textarea
             {...register('description')}
             rows={3}
             disabled={isSubmitting || updateMutation.isPending}
           />
           {errors.description && (
-            <p className="text-xs text-foreground font-semibold">{errors.description.message}</p>
+            <p className="text-xs text-rose-600 font-medium">{errors.description.message}</p>
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-2 pt-2 border-t border-brand-medium">
+        <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
           <Button
             type="button"
             variant="outline"
@@ -111,16 +110,16 @@ export function EditNotebookDialog({ notebook, isOpen, onClose }: EditNotebookDi
           <Button
             type="submit"
             disabled={isSubmitting || updateMutation.isPending}
-            className="gap-1.5"
+            className="gap-1.5 shadow-sm"
           >
             {updateMutation.isPending ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin text-sky-400" />
                 <span>Saving...</span>
               </>
             ) : (
               <>
-                <Save className="h-4 w-4" />
+                <Save className="h-4 w-4 text-sky-400" />
                 <span>Save Changes</span>
               </>
             )}

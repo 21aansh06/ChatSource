@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useCreateNotebookMutation } from '../api/use-notebooks';
-import { Loader2, Plus } from 'lucide-react';
+import { Loader2, Plus, BookOpen } from 'lucide-react';
 
 const schema = z.object({
   title: z.string().min(1, 'Notebook title is required').max(150, 'Title cannot exceed 150 characters').trim(),
@@ -67,18 +67,18 @@ export function CreateNotebookDialog({ isOpen, onClose, onSuccess }: CreateNoteb
       isOpen={isOpen}
       onClose={handleClose}
       title="Create New Notebook"
-      description="Containers hold PDF documents, website links, and raw text notes."
+      description="Containers hold PDF documents, YouTube videos, website links, and notes."
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         {createMutation.isError && (
-          <div className="rounded-md bg-brand-medium border border-brand-dark p-3 text-xs text-foreground font-medium">
+          <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700 font-semibold">
             {createMutation.error?.message || 'Failed to create notebook. Please try again.'}
           </div>
         )}
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-foreground">
-            Title <span className="text-foreground">*</span>
+          <label className="text-xs font-bold text-slate-900 font-heading">
+            Title <span className="text-rose-500">*</span>
           </label>
           <Input
             {...register('title')}
@@ -87,13 +87,13 @@ export function CreateNotebookDialog({ isOpen, onClose, onSuccess }: CreateNoteb
             autoFocus
           />
           {errors.title && (
-            <p className="text-xs text-foreground font-semibold">{errors.title.message}</p>
+            <p className="text-xs text-rose-600 font-medium">{errors.title.message}</p>
           )}
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-foreground">
-            Description <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+          <label className="text-xs font-bold text-slate-900 font-heading">
+            Description <span className="text-xs text-slate-400 font-normal">(Optional)</span>
           </label>
           <Textarea
             {...register('description')}
@@ -102,11 +102,11 @@ export function CreateNotebookDialog({ isOpen, onClose, onSuccess }: CreateNoteb
             disabled={isSubmitting || createMutation.isPending}
           />
           {errors.description && (
-            <p className="text-xs text-foreground font-semibold">{errors.description.message}</p>
+            <p className="text-xs text-rose-600 font-medium">{errors.description.message}</p>
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-2 pt-2 border-t border-brand-medium">
+        <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
           <Button
             type="button"
             variant="outline"
@@ -118,16 +118,16 @@ export function CreateNotebookDialog({ isOpen, onClose, onSuccess }: CreateNoteb
           <Button
             type="submit"
             disabled={isSubmitting || createMutation.isPending}
-            className="gap-1.5"
+            className="gap-1.5 shadow-sm"
           >
             {createMutation.isPending ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 animate-spin text-sky-400" />
                 <span>Creating...</span>
               </>
             ) : (
               <>
-                <Plus className="h-4 w-4" />
+                <Plus className="h-4 w-4 text-sky-400" />
                 <span>Create Notebook</span>
               </>
             )}

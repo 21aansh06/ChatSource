@@ -16,7 +16,7 @@ import { CitationItem, ChatMessage, SSEChatEvent } from '@/lib/api/types';
 import { apiClient } from '@/lib/api/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Sparkles, AlertCircle, RefreshCw, Plus } from 'lucide-react';
+import { MessageSquare, Sparkles, AlertCircle, RefreshCw, Plus, ShieldCheck, ArrowRight, Lightbulb, Compass } from 'lucide-react';
 
 interface ChatInterfaceProps {
   notebookId: string;
@@ -194,29 +194,45 @@ export function ChatInterface({ notebookId, hasReadySources }: ChatInterfaceProp
     setStreamError(null);
   };
 
-  // User bubble rendering logic: render streaming user bubble only if not yet in persistedMessages
+  // User bubble rendering logic
   const isUserMessagePersisted = persistedMessages.some(
     (m) => m.role === 'USER' && m.content === streamingUserMessage
   );
   const showStreamingUserBubble = streamingUserMessage !== null && !isUserMessagePersisted;
 
-  // Assistant bubble rendering logic: render streaming assistant bubble immediately when streaming starts (isStreaming === true),
-  // and keep rendering until persisted history has received the assistant message
+  // Assistant bubble rendering logic
   const showStreamingAssistantBubble =
     isStreaming || (streamingAssistantContent !== '' && !hasAssistantMessagePersisted);
 
+  // Suggested Starter Prompts
+  const suggestedPrompts = [
+    { title: 'Executive Summary', prompt: 'Provide a concise executive summary of all uploaded materials.' },
+    { title: 'Key Takeaways & Findings', prompt: 'What are the top 3-5 core conclusions and takeaways discussed in the sources?' },
+    { title: 'Technical Glossary', prompt: 'Define the main technical terms, formulas, or concepts mentioned across the sources.' }
+  ];
+
   return (
-    <div className="flex flex-col h-[600px] rounded-xl border border-brand-medium bg-card shadow-xs overflow-hidden">
-      {/* Header Bar */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-brand-medium bg-brand-light">
-        <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-medium border border-brand-dark text-foreground">
-            <MessageSquare className="h-4 w-4" />
+    <div className="flex flex-col h-full rounded-2xl border border-slate-200/90 bg-white shadow-sm overflow-hidden font-sans">
+      {/* Studio Chat Header (Shrink-0) */}
+      <div className="flex items-center justify-between px-5 py-3 border-b border-slate-100 bg-slate-50/60 shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 text-white shadow-2xs">
+            <Sparkles className="h-4 w-4 text-sky-400" />
           </div>
           <div>
-            <h3 className="font-bold text-sm text-foreground leading-none">Notebook Chat</h3>
-            <p className="text-[11px] text-muted-foreground mt-0.5">
-              {sessionData?.title || 'Notebook-Scoped Grounded Chat'}
+            <div className="flex items-center gap-2">
+              <h3 className="font-extrabold text-xs sm:text-sm text-slate-900 leading-none font-heading">
+                Grounded Chat Studio
+              </h3>
+              {hasReadySources && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-mono flex items-center gap-1">
+                  <ShieldCheck className="h-3 w-3 text-emerald-600" />
+                  Grounded
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              {sessionData?.title || 'Notebook-Scoped Session'}
             </p>
           </div>
         </div>
@@ -226,47 +242,82 @@ export function ChatInterface({ notebookId, hasReadySources }: ChatInterfaceProp
           variant="outline"
           size="sm"
           disabled={isStreaming}
-          className="gap-1 text-xs"
+          className="gap-1 px-2.5 py-1 text-xs font-semibold shadow-2xs cursor-pointer"
         >
-          <Plus className="h-3.5 w-3.5" />
-          <span>New Chat</span>
+          <Plus className="h-3.5 w-3.5 text-sky-600" />
+          <span>New Session</span>
         </Button>
       </div>
 
-      {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-brand-light/30">
+      {/* Messages Scroll Area (Flex-1 Overflow-Y-Auto Internal Scroll Only) */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-slate-50/20 min-h-0">
         {/* Loading History Skeleton */}
         {isLoadingHistory && activeSessionId && (
           <div className="space-y-4">
-            <Skeleton className="h-16 w-3/4 ml-auto rounded-xl" />
-            <Skeleton className="h-28 w-4/5 rounded-xl" />
+            <Skeleton className="h-14 w-3/4 ml-auto rounded-2xl" />
+            <Skeleton className="h-24 w-4/5 rounded-2xl" />
           </div>
         )}
 
         {/* History Fetch Error */}
         {isError && (
-          <div className="rounded-xl border border-brand-dark bg-brand-medium/50 p-6 text-center space-y-3 my-4">
-            <AlertCircle className="h-6 w-6 mx-auto text-foreground" />
-            <p className="text-xs text-muted-foreground">Failed to load session history.</p>
-            <Button onClick={() => refetch()} variant="outline" size="sm" className="gap-2 mx-auto">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50/50 p-5 text-center space-y-3 my-4">
+            <AlertCircle className="h-5 w-5 mx-auto text-rose-600" />
+            <p className="text-xs text-slate-600">Failed to load session history.</p>
+            <Button onClick={() => refetch()} variant="outline" size="sm" className="gap-2 mx-auto text-xs">
               <RefreshCw className="h-3.5 w-3.5" />
               <span>Retry</span>
             </Button>
           </div>
         )}
 
-        {/* Empty State */}
+        {/* Studio Empty State with Suggestion Cards */}
         {!isLoadingHistory && persistedMessages.length === 0 && !isStreaming && !showStreamingAssistantBubble && (
-          <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-3 my-auto">
-            <div className="h-12 w-12 rounded-2xl bg-brand-medium border border-brand-dark flex items-center justify-center text-foreground shadow-2xs">
-              <Sparkles className="h-6 w-6" />
-            </div>
-            <div className="space-y-1 max-w-sm">
-              <h4 className="font-bold text-sm text-foreground">Ask Anything About Your Sources</h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Queries search across all ready notebook sources simultaneously and return streaming answers backed by location citations.
+          <div className="flex flex-col items-center justify-center h-full text-center p-6 space-y-6 my-auto">
+            <div className="space-y-2 max-w-md">
+              <div className="h-12 w-12 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 mx-auto shadow-2xs">
+                <Compass className="h-6 w-6" />
+              </div>
+              <h4 className="font-extrabold text-base sm:text-lg text-slate-900 font-heading">
+                Understand your sources with grounded AI
+              </h4>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Ask questions across all ingested PDF documents, website links, or notes simultaneously. Every answer includes verifiable location citations.
               </p>
             </div>
+
+            {/* Starter Suggestion Cards */}
+            {hasReadySources && (
+              <div className="w-full max-w-lg space-y-2">
+                <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-slate-400 font-heading uppercase tracking-wider">
+                  <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
+                  <span>Suggested Quick Starters:</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-left">
+                  {suggestedPrompts.map((item, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleSendMessage(item.prompt)}
+                      disabled={isStreaming}
+                      className="group p-3 rounded-xl bg-white border border-slate-200/90 hover:border-sky-300 hover:shadow-sm transition-all cursor-pointer flex flex-col justify-between"
+                    >
+                      <div>
+                        <span className="font-bold text-xs text-slate-900 block font-heading group-hover:text-sky-600 transition-colors">
+                          {item.title}
+                        </span>
+                        <p className="text-[11px] text-slate-400 mt-1 line-clamp-2 leading-tight">
+                          {item.prompt}
+                        </p>
+                      </div>
+                      <div className="mt-3 flex justify-end">
+                        <ArrowRight className="h-3 w-3 text-slate-300 group-hover:text-sky-500 transition-colors" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -275,12 +326,12 @@ export function ChatInterface({ notebookId, hasReadySources }: ChatInterfaceProp
           <ChatMessageItem key={msg.id} message={msg} />
         ))}
 
-        {/* Live Streaming or Transitioning User Message Bubble */}
+        {/* Live Streaming User Bubble */}
         {showStreamingUserBubble && streamingUserMessage && (
           <ChatMessageItem role="USER" content={streamingUserMessage} />
         )}
 
-        {/* Live Streaming or Transitioning Assistant Message Bubble */}
+        {/* Live Streaming Assistant Bubble */}
         {showStreamingAssistantBubble && (
           <ChatMessageItem
             role="ASSISTANT"
@@ -295,8 +346,8 @@ export function ChatInterface({ notebookId, hasReadySources }: ChatInterfaceProp
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Bar */}
-      <div className="p-4 border-t border-brand-medium bg-card">
+      {/* Studio Input Area (Shrink-0) */}
+      <div className="p-4 border-t border-slate-100 bg-white shrink-0">
         <ChatInput
           onSend={handleSendMessage}
           isStreaming={isStreaming}

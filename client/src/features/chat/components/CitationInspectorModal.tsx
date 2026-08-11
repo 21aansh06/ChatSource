@@ -52,17 +52,17 @@ export function CitationInspectorModal({
       title={`Citation [${citation.citationId}]: ${citation.sourceTitle}`}
       description="Ground-truth source excerpt used in model response generation."
     >
-      <div className="space-y-4">
+      <div className="space-y-4 font-sans">
         {/* Header Metadata Pill */}
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-brand-medium p-3 border border-brand-dark text-xs">
-          <div className="flex items-center gap-2 font-bold text-foreground">
-            {isPdf && <FileText className="h-4 w-4" />}
-            {isWebsite && <Globe className="h-4 w-4" />}
-            {isText && <AlignLeft className="h-4 w-4" />}
-            <span className="uppercase tracking-wider">{citation.sourceType}</span>
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-900 text-white p-3.5 border border-slate-800 text-xs shadow-xs">
+          <div className="flex items-center gap-2 font-bold font-heading">
+            {isPdf && <FileText className="h-4 w-4 text-sky-400" />}
+            {isWebsite && <Globe className="h-4 w-4 text-emerald-400" />}
+            {isText && <AlignLeft className="h-4 w-4 text-indigo-400" />}
+            <span className="uppercase tracking-wider text-[11px] font-mono">{citation.sourceType}</span>
           </div>
 
-          <div className="flex items-center gap-1.5 font-mono text-[11px] text-foreground font-semibold">
+          <div className="flex items-center gap-1.5 font-mono text-[11px] text-amber-300 font-semibold bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-lg">
             <MapPin className="h-3.5 w-3.5" />
             {isPdf && pdfPage !== null && <span>Page {pdfPage}</span>}
             {isWebsite && sectionTitle && <span>{sectionTitle}</span>}
@@ -72,25 +72,25 @@ export function CitationInspectorModal({
         </div>
 
         {/* Snippet Quote Block */}
-        <div className="rounded-xl border border-brand-dark bg-brand-light p-4 text-xs md:text-sm text-foreground space-y-2">
-          <div className="flex items-center gap-1.5 text-muted-foreground font-semibold text-xs">
-            <Quote className="h-3.5 w-3.5" />
-            <span>Retrieved Passage Snippet</span>
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs sm:text-sm text-slate-800 space-y-2.5">
+          <div className="flex items-center gap-1.5 text-slate-500 font-bold text-xs font-heading">
+            <Quote className="h-3.5 w-3.5 text-sky-600" />
+            <span>Retrieved Source Passage Snippet</span>
           </div>
-          <p className="italic leading-relaxed font-sans border-l-2 border-foreground pl-3 py-1">
+          <p className="italic leading-relaxed font-sans border-l-2 border-sky-500 pl-3.5 py-1 text-slate-700">
             &quot;{citation.snippet}&quot;
           </p>
         </div>
 
         {/* Website Direct Clickable URL Link */}
         {isWebsite && websiteUrl && (
-          <div className="rounded-lg bg-card p-3 border border-brand-medium flex items-center justify-between text-xs">
-            <span className="font-semibold text-muted-foreground">Original Website URL:</span>
+          <div className="rounded-xl bg-white p-3 border border-slate-200 flex items-center justify-between text-xs">
+            <span className="font-semibold text-slate-500 font-heading">Original Website URL:</span>
             <a
               href={websiteUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1 font-mono font-bold text-foreground hover:underline"
+              className="inline-flex items-center gap-1 font-mono font-bold text-sky-600 hover:underline"
             >
               <span>Open Link</span>
               <ExternalLink className="h-3.5 w-3.5" />
@@ -100,20 +100,20 @@ export function CitationInspectorModal({
 
         {/* PDF / Text Location Details */}
         {isPdf && pdfPage !== null && (
-          <div className="rounded-lg bg-card p-3 border border-brand-medium text-xs flex justify-between items-center">
-            <span className="font-semibold text-muted-foreground">Document Page:</span>
-            <span className="font-mono font-bold text-foreground">Page {pdfPage}</span>
+          <div className="rounded-xl bg-white p-3 border border-slate-200 text-xs flex justify-between items-center">
+            <span className="font-semibold text-slate-500 font-heading">Document Page:</span>
+            <span className="font-mono font-bold text-slate-900">Page {pdfPage}</span>
           </div>
         )}
 
         {isText && lineRange && (
-          <div className="rounded-lg bg-card p-3 border border-brand-medium text-xs flex justify-between items-center">
-            <span className="font-semibold text-muted-foreground">Source Line Range:</span>
-            <span className="font-mono font-bold text-foreground">Lines {lineRange}</span>
+          <div className="rounded-xl bg-white p-3 border border-slate-200 text-xs flex justify-between items-center">
+            <span className="font-semibold text-slate-500 font-heading">Source Line Range:</span>
+            <span className="font-mono font-bold text-slate-900">Lines {lineRange}</span>
           </div>
         )}
 
-        <div className="flex items-center justify-end pt-2 border-t border-brand-medium">
+        <div className="flex items-center justify-end pt-3 border-t border-slate-100">
           <Button variant="outline" size="sm" onClick={onClose}>
             Close Inspector
           </Button>

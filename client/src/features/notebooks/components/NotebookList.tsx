@@ -10,7 +10,7 @@ import { DeleteNotebookDialog } from './DeleteNotebookDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Notebook } from '@/lib/api/types';
-import { BookPlus, FolderPlus, RefreshCw, AlertCircle } from 'lucide-react';
+import { BookPlus, FolderPlus, RefreshCw, AlertCircle, BookOpen } from 'lucide-react';
 
 export function NotebookList() {
   const router = useRouter();
@@ -27,20 +27,29 @@ export function NotebookList() {
   return (
     <div className="space-y-6">
       {/* Header Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-brand-medium">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-200">
         <div>
-          <h1 className="text-2xl font-extrabold text-foreground tracking-tight">Your Notebooks</h1>
-          <p className="text-xs md:text-sm text-muted-foreground mt-1">
-            Containers holding multi-format sources for grounded RAG research.
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-heading">
+              Your Notebooks
+            </h1>
+            {notebooks && (
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-700 font-mono">
+                {notebooks.length}
+              </span>
+            )}
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Organize multi-format sources (PDFs, YouTube URLs, websites, notes) into grounded notebooks.
           </p>
         </div>
 
         <Button
           onClick={() => setIsCreateOpen(true)}
-          className="gap-2 shrink-0 shadow-xs"
+          className="gap-2 shrink-0 shadow-sm"
         >
-          <BookPlus className="h-4 w-4" />
-          <span>New Notebook</span>
+          <BookPlus className="h-4 w-4 text-sky-400" />
+          <span>Create New Notebook</span>
         </Button>
       </div>
 
@@ -48,15 +57,15 @@ export function NotebookList() {
       {isLoading && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, idx) => (
-            <div key={idx} className="rounded-xl border border-brand-medium bg-card p-5 space-y-4">
+            <div key={idx} className="rounded-2xl border border-slate-200 bg-white p-6 space-y-4 shadow-2xs">
               <div className="flex items-center justify-between">
-                <Skeleton className="h-10 w-10 rounded-lg" />
-                <Skeleton className="h-6 w-12 rounded" />
+                <Skeleton className="h-10 w-10 rounded-xl" />
+                <Skeleton className="h-6 w-16 rounded-lg" />
               </div>
-              <Skeleton className="h-6 w-3/4 rounded" />
-              <Skeleton className="h-4 w-full rounded" />
-              <Skeleton className="h-4 w-2/3 rounded" />
-              <div className="pt-3 border-t border-brand-medium flex justify-between">
+              <Skeleton className="h-6 w-3/4 rounded-lg" />
+              <Skeleton className="h-4 w-full rounded-lg" />
+              <Skeleton className="h-4 w-2/3 rounded-lg" />
+              <div className="pt-4 border-t border-slate-100 flex justify-between">
                 <Skeleton className="h-4 w-24 rounded" />
                 <Skeleton className="h-4 w-12 rounded" />
               </div>
@@ -67,13 +76,13 @@ export function NotebookList() {
 
       {/* Error State */}
       {isError && (
-        <div className="rounded-xl border border-brand-dark bg-brand-medium/50 p-6 text-center space-y-4 max-w-lg mx-auto my-8">
-          <div className="h-12 w-12 rounded-full bg-brand-medium border border-brand-dark flex items-center justify-center mx-auto text-foreground">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50/40 p-8 text-center space-y-4 max-w-lg mx-auto my-8">
+          <div className="h-12 w-12 rounded-xl bg-rose-100 border border-rose-200 flex items-center justify-center mx-auto text-rose-600">
             <AlertCircle className="h-6 w-6" />
           </div>
           <div>
-            <h3 className="font-bold text-base text-foreground">Failed to Load Notebooks</h3>
-            <p className="text-xs text-muted-foreground mt-1">
+            <h3 className="font-bold text-base text-slate-900 font-heading">Failed to Load Notebooks</h3>
+            <p className="text-xs text-slate-600 mt-1">
               {error?.message || 'An error occurred while communicating with the backend API.'}
             </p>
           </div>
@@ -86,18 +95,18 @@ export function NotebookList() {
 
       {/* Empty State */}
       {!isLoading && !isError && notebooks?.length === 0 && (
-        <div className="rounded-xl border border-dashed border-brand-dark bg-card p-12 text-center space-y-5 max-w-md mx-auto my-12">
-          <div className="h-16 w-16 rounded-2xl bg-brand-medium border border-brand-dark flex items-center justify-center mx-auto text-foreground shadow-xs">
+        <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white p-12 text-center space-y-5 max-w-md mx-auto my-12 shadow-2xs">
+          <div className="h-16 w-16 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center mx-auto text-sky-600 shadow-2xs">
             <FolderPlus className="h-8 w-8" />
           </div>
           <div className="space-y-1.5">
-            <h3 className="font-bold text-lg text-foreground">No Notebooks Yet</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Create your first notebook container to ingest PDF documents, website URLs, or raw text notes.
+            <h3 className="font-bold text-lg text-slate-900 font-heading">No Notebooks Yet</h3>
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Create your first notebook container to ingest PDF documents, YouTube lectures, website links, or text notes.
             </p>
           </div>
-          <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
-            <BookPlus className="h-4 w-4" />
+          <Button onClick={() => setIsCreateOpen(true)} className="gap-2 shadow-sm">
+            <BookPlus className="h-4 w-4 text-sky-400" />
             <span>Create First Notebook</span>
           </Button>
         </div>

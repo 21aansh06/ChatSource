@@ -1,11 +1,24 @@
 import type { Metadata } from 'next';
+import { Plus_Jakarta_Sans, Inter } from 'next/font/google';
 import { Providers } from './providers';
 import { Navbar } from '@/components/layout/Navbar';
 import './globals.css';
 
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-heading',
+  display: 'swap',
+});
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-body',
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
-  title: 'ChatSource | Ground-Truth RAG Workspace',
-  description: 'Grounded Notebook RAG platform for parsing, chunking, and chatting with PDFs, Website URLs, and Raw Text sources.',
+  title: 'ChatSource | Your Sources. Your Answers.',
+  description: 'Turn your PDFs, YouTube videos, website links, and notes into grounded answers with verifiable citations.',
 };
 
 export default function RootLayout({
@@ -14,8 +27,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className="min-h-screen flex flex-col bg-brand-light text-foreground antialiased selection:bg-brand-dark selection:text-foreground">
+    <html lang="en" className={`${plusJakartaSans.variable} ${inter.variable}`}>
+      <body className="min-h-screen flex flex-col bg-background text-foreground antialiased selection:bg-sky-100 selection:text-slate-900">
         <Providers>
           <Navbar />
           <main className="flex-1 flex flex-col">
