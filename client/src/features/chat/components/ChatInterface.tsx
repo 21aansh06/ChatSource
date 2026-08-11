@@ -237,7 +237,7 @@ export function ChatInterface({ notebookId, hasReadySources }: ChatInterfaceProp
           </div>
         </div>
 
-        <Button
+        {/* <Button
           onClick={handleStartNewSession}
           variant="outline"
           size="sm"
@@ -246,7 +246,7 @@ export function ChatInterface({ notebookId, hasReadySources }: ChatInterfaceProp
         >
           <Plus className="h-3.5 w-3.5 text-sky-600" />
           <span>New Session</span>
-        </Button>
+        </Button> */}
       </div>
 
       {/* Messages Scroll Area (Flex-1 Overflow-Y-Auto Internal Scroll Only) */}
