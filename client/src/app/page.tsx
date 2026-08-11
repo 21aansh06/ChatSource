@@ -23,6 +23,7 @@ import {
   GraduationCap,
   Code2,
   AlignLeft,
+  User
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -88,10 +89,6 @@ export default function HomePage() {
       a: 'ChatSource seamlessly ingests PDF files (up to 50MB), YouTube video URLs with auto-extracted transcripts, public website page URLs, and raw markdown/plain text notes.'
     },
     {
-      q: 'How does ChatSource generate answers grounded in my sources?',
-      a: 'When you ask a question inside a notebook, ChatSource searches through your ready ingested material, extracts exact text chunks, and streams an answer backed by specific citation references (page numbers, YouTube timestamps, or section headings).'
-    },
-    {
       q: 'Can I ask follow-up questions within the same chat session?',
       a: 'Yes. Each notebook supports ongoing multi-turn conversations, preserving previous dialogue context while continuously referencing your uploaded sources.'
     },
@@ -102,10 +99,6 @@ export default function HomePage() {
     {
       q: 'Is YouTube transcript ingestion automatic?',
       a: 'Yes. Simply paste any public YouTube video link into your notebook, and ChatSource extracts the transcript and timestamps automatically.'
-    },
-    {
-      q: 'Can I cancel my account or change subscription tiers anytime?',
-      a: 'Yes. You can manage your account and subscription preferences anytime from your settings.'
     }
   ];
 
@@ -230,11 +223,10 @@ export default function HomePage() {
             <div className="mt-6 inline-flex items-center gap-1 rounded-xl bg-slate-100 p-1.5 border border-slate-200">
               <button
                 onClick={() => setActiveDemoTab('youtube')}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all cursor-pointer ${
-                  activeDemoTab === 'youtube'
-                    ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all cursor-pointer ${activeDemoTab === 'youtube'
+                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900'
+                  }`}
               >
                 <Video className="h-4 w-4 text-rose-600" />
                 <span>YouTube Lecture</span>
@@ -242,11 +234,10 @@ export default function HomePage() {
 
               <button
                 onClick={() => setActiveDemoTab('pdf')}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all cursor-pointer ${
-                  activeDemoTab === 'pdf'
-                    ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all cursor-pointer ${activeDemoTab === 'pdf'
+                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900'
+                  }`}
               >
                 <FileText className="h-4 w-4 text-sky-600" />
                 <span>PDF Paper</span>
@@ -254,11 +245,10 @@ export default function HomePage() {
 
               <button
                 onClick={() => setActiveDemoTab('website')}
-                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all cursor-pointer ${
-                  activeDemoTab === 'website'
-                    ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
+                className={`flex items-center gap-2 rounded-lg px-4 py-2 text-xs font-bold transition-all cursor-pointer ${activeDemoTab === 'website'
+                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200'
+                  : 'text-slate-600 hover:text-slate-900'
+                  }`}
               >
                 <Globe className="h-4 w-4 text-emerald-600" />
                 <span>Website Doc</span>
@@ -267,60 +257,109 @@ export default function HomePage() {
           </div>
 
           {/* Demo Card Showcase */}
-          <div className="rounded-2xl border border-slate-200 bg-slate-900 text-white shadow-2xl overflow-hidden">
+          <div className="rounded-2xl border border-slate-200 bg-white shadow-2xl overflow-hidden">
             {/* Header bar */}
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-slate-950/60">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-200 bg-white">
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-lg border ${currentDemo.iconBg}`}>
                   <currentDemo.icon className="h-4 w-4" />
                 </div>
+
                 <div>
-                  <h4 className="text-xs font-bold text-white line-clamp-1 font-heading">{currentDemo.sourceTitle}</h4>
-                  <p className="text-[11px] text-slate-400 font-mono">{currentDemo.sourceMeta}</p>
+                  <h4 className="text-xs font-bold text-slate-900 line-clamp-1 font-heading">
+                    {currentDemo.sourceTitle}
+                  </h4>
+                  <p className="text-[11px] text-slate-500 font-mono">
+                    {currentDemo.sourceMeta}
+                  </p>
                 </div>
               </div>
 
-              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/60 font-mono">
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-50 text-emerald-600 border border-emerald-200 font-mono">
                 Indexed & Ready
               </span>
             </div>
 
             {/* Simulated Chat Dialogue */}
-            <div className="p-6 space-y-5 bg-slate-900">
+            <div className="p-6 space-y-5 bg-white">
+
               {/* User Prompt */}
               <div className="flex items-start gap-3 justify-end">
-                <div className="bg-sky-600 text-white px-4 py-3 rounded-2xl rounded-tr-xs text-xs sm:text-sm max-w-xl leading-relaxed shadow-sm">
-                  {currentDemo.question}
+                <div className="bg-slate-900 border border-slate-800 text-white rounded-2xl shadow-sm max-w-[75%]">
+                  <div className="flex items-start gap-3 px-4 py-3">
+
+                    {/* User Logo */}
+                    <div className="h-8 w-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-sky-400 shrink-0">
+                      <User className="h-4 w-4" />
+                    </div>
+
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-bold text-white font-heading">
+                        You
+                      </div>
+
+                      <p className="mt-1 text-xs sm:text-sm leading-relaxed">
+                        {currentDemo.question}
+                      </p>
+                    </div>
+
+                  </div>
                 </div>
               </div>
 
               {/* Assistant Grounded Answer */}
+              {/* Assistant Grounded Answer */}
               <div className="flex items-start gap-3">
-                <div className="h-8 w-8 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-sky-400 shrink-0">
-                  <Sparkles className="h-4 w-4" />
-                </div>
-                <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl rounded-tl-xs p-5 space-y-3.5 max-w-2xl text-xs sm:text-sm text-slate-200 leading-relaxed shadow-sm">
-                  <p>{currentDemo.answer}</p>
+
+                <div className="bg-white border border-slate-200 rounded-2xl rounded-tl-xs p-5 space-y-3.5 max-w-2xl text-xs sm:text-sm text-slate-700 leading-relaxed shadow-sm">
+
+                  {/* ChatSource Logo + Name */}
+                  <div className="flex items-center gap-3">
+
+                    {/* ChatSource Logo */}
+                    <div className="h-8 w-8 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-500 shrink-0">
+                      <Sparkles className="h-4 w-4" />
+                    </div>
+
+                    {/* ChatSource Name */}
+                    <div className="text-[13px] font-bold text-slate-900 font-heading">
+                      ChatSource Assistant
+                    </div>
+
+                  </div>
+
+                  {/* Answer */}
+                  <p>
+                    {currentDemo.answer}
+                  </p>
 
                   {/* Verifiable Citation Pill */}
-                  <div className="pt-3 border-t border-slate-700/80">
-                    <div className="text-[11px] font-bold text-slate-400 mb-2 flex items-center gap-1.5 font-heading">
-                      <Bookmark className="h-3.5 w-3.5 text-amber-400" />
+                  <div className="pt-3 border-t border-slate-200">
+
+                    <div className="text-[11px] font-bold text-slate-700 mb-2 flex items-center gap-1.5 font-heading">
+                      <Bookmark className="h-3.5 w-3.5 text-amber-500" />
                       <span>Verifiable Citation Proof:</span>
                     </div>
 
-                    <div className="inline-flex flex-col sm:flex-row items-start sm:items-center gap-2 rounded-xl bg-slate-950 p-3 border border-slate-700/60 text-xs w-full">
+                    <div className="inline-flex flex-col sm:flex-row items-start sm:items-center gap-2 rounded-xl bg-slate-50 p-3 border border-slate-200 text-xs w-full">
+
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                        <span className="font-mono text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 border border-amber-200">
                           [{currentDemo.citation.id}]
                         </span>
-                        <span className="font-semibold text-slate-300">{currentDemo.citation.label}</span>
+
+                        <span className="font-semibold text-slate-700">
+                          {currentDemo.citation.label}
+                        </span>
                       </div>
-                      <span className="text-[11px] text-slate-400 italic truncate max-w-xs sm:max-w-md">
+
+                      <span className="text-[11px] text-slate-500 italic truncate max-w-xs sm:max-w-md">
                         &quot;{currentDemo.citation.detail}&quot;
                       </span>
+
                     </div>
                   </div>
+
                 </div>
               </div>
             </div>
@@ -509,7 +548,7 @@ export default function HomePage() {
       </section>
 
       {/* 6. SOCIAL PROOF (CLEARLY MARKED PLACEHOLDERS) */}
-      <section className="py-16 md:py-24 bg-white border-b border-slate-200/80">
+      {/* <section className="py-16 md:py-24 bg-white border-b border-slate-200/80">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="text-xs font-bold uppercase tracking-wider text-sky-600 font-mono">User Reviews</span>
@@ -522,7 +561,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Testimonial Placeholder 1 */}
+            Testimonial Placeholder 1
             <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-6 flex flex-col justify-between">
               <p className="text-xs sm:text-sm text-slate-600 italic leading-relaxed">
                 &quot;Being able to click on a citation badge and jump straight to the page number in a 200-page PDF report saves me hours of manual searching.&quot;
@@ -538,7 +577,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Testimonial Placeholder 2 */}
+            Testimonial Placeholder 2
             <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-6 flex flex-col justify-between">
               <p className="text-xs sm:text-sm text-slate-600 italic leading-relaxed">
                 &quot;I paste YouTube lecture links into ChatSource and ask specific questions. The timestamp references let me double-check the professor&apos;s exact words.&quot;
@@ -554,7 +593,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Testimonial Placeholder 3 */}
+            Testimonial Placeholder 3
             <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-6 flex flex-col justify-between">
               <p className="text-xs sm:text-sm text-slate-600 italic leading-relaxed">
                 &quot;Combining technical web documentation and raw meeting notes into a single notebook container makes onboarding new codebases twice as fast.&quot;
@@ -571,10 +610,10 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* 7. PRICING SECTION */}
-      <section className="py-16 md:py-24 bg-slate-50 border-b border-slate-200/80">
+      {/* <section className="py-16 md:py-24 bg-slate-50 border-b border-slate-200/80">
         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <span className="text-xs font-bold uppercase tracking-wider text-sky-600 font-mono">Simple Pricing</span>
@@ -587,7 +626,7 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-            {/* Free Tier */}
+            Free Tier
             <div className="rounded-2xl border border-slate-200 bg-white p-7 flex flex-col justify-between shadow-sm">
               <div>
                 <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500 font-mono">Starter</span>
@@ -628,7 +667,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Pro Tier */}
+            Pro Tier
             <div className="rounded-2xl border-2 border-sky-500 bg-white p-7 flex flex-col justify-between shadow-xl relative">
               <div className="absolute -top-3 right-6 rounded-full bg-sky-500 px-3 py-1 text-[10px] font-extrabold uppercase tracking-wider text-white shadow-sm">
                 Most Popular
@@ -674,7 +713,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* 8. FAQ ACCORDION SECTION */}
       <section className="py-16 md:py-24 bg-white border-b border-slate-200/80">
@@ -698,9 +737,8 @@ export default function HomePage() {
                 >
                   <span>{faq.q}</span>
                   <ChevronDown
-                    className={`h-4 w-4 text-slate-500 transition-transform ${
-                      activeFaq === idx ? 'rotate-180 text-sky-600' : ''
-                    }`}
+                    className={`h-4 w-4 text-slate-500 transition-transform ${activeFaq === idx ? 'rotate-180 text-sky-600' : ''
+                      }`}
                   />
                 </button>
 
@@ -760,20 +798,26 @@ export default function HomePage() {
       <footer className="border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-500">
         <div className="mx-auto max-w-7xl px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-md bg-slate-900 flex items-center justify-center text-white text-[10px] font-bold">
-              CS
+            <div className="h-6 w-6 rounded-md overflow-hidden flex items-center justify-center">
+              <img
+                src="/favicon.ico"
+                alt="ChatSource logo"
+                className="h-full w-full object-contain"
+              />
             </div>
+
             <span className="font-bold text-slate-900 font-heading">ChatSource</span>
+
             <span>&copy; {new Date().getFullYear()} — Grounded RAG Workspace</span>
           </div>
 
-          <div className="flex items-center gap-4 text-slate-500">
+          {/* <div className="flex items-center gap-4 text-slate-500">
             <span>Privacy Policy</span>
             <span>•</span>
             <span>Terms of Service</span>
             <span>•</span>
             <span>Support</span>
-          </div>
+          </div> */}
         </div>
       </footer>
     </div>
