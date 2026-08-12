@@ -1,9 +1,9 @@
 import { Source, SourceType } from '@prisma/client';
-import * as cheerio from 'cheerio';
 import { URL } from 'url';
 import dns from 'dns/promises';
 import { IngestionHandler, ExtractedDocument, ProcessedChunk } from '../contract/ingestion.handler.js';
 import { chunkWebsiteDocument } from '../chunking/website.chunker.js';
+import { getFirecrawlClient } from '../../../infra/firecrawl.js';
 
 export class WebsiteIngestionHandler implements IngestionHandler {
   readonly sourceType = SourceType.WEBSITE;
@@ -65,32 +65,30 @@ export class WebsiteIngestionHandler implements IngestionHandler {
     // 1. SSRF Security check
     const safeUrl = await this.validateUrlForSSRF(source.url);
 
-    // 2. Fetch raw HTML
-    const response = await fetch(safeUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) ChatSourceIngestionBot/1.0',
-      },
-    });
+    // 2. Obtain singleton Firecrawl client (validates API key & reuses HTTP connection pool)
+    const firecrawl = getFirecrawlClient();
 
-    if (!response.ok) {
-      throw new Error(`[WebsiteIngestionHandler] HTTP ${response.status} ${response.statusText} fetching ${safeUrl}`);
+    // 3. Scrape via Firecrawl SDK
+    let title = source.title;
+    let bodyText = '';
+
+    try {
+      console.log(`[WebsiteIngestionHandler] Scraping website ${safeUrl} via Firecrawl singleton client...`);
+      const scrapeResult = await firecrawl.scrape(safeUrl, {
+        formats: ['markdown'],
+      });
+
+      if (scrapeResult?.markdown && scrapeResult.markdown.trim().length >= 50) {
+        bodyText = scrapeResult.markdown.trim();
+      }
+
+      const metaTitle = scrapeResult?.metadata?.title || scrapeResult?.metadata?.ogTitle;
+      if (metaTitle && typeof metaTitle === 'string' && metaTitle.trim()) {
+        title = metaTitle.trim();
+      }
+    } catch (firecrawlErr: any) {
+      throw new Error(`[WebsiteIngestionHandler] Firecrawl scrape failed for ${safeUrl}: ${firecrawlErr?.message || firecrawlErr}`);
     }
-
-    const html = await response.text();
-
-    // 3. Clean DOM and extract meaningful article content via cheerio
-    const $ = cheerio.load(html);
-
-    // Remove noise elements (scripts, styles, navs, footers, ads)
-    $('script, style, noscript, nav, footer, header, iframe, svg, [role="navigation"]').remove();
-
-    const title = $('title').text().trim() || $('h1').first().text().trim() || source.title;
-    
-    // Extract main text or body text
-    const bodyText = $('main, article, #content, .content, body')
-      .text()
-      .replace(/\s+/g, ' ')
-      .trim();
 
     if (!bodyText || bodyText.length < 50) {
       throw new Error(`[WebsiteIngestionHandler] Extracted webpage text content is empty or near-empty from ${safeUrl}`);
@@ -115,3 +113,6 @@ export class WebsiteIngestionHandler implements IngestionHandler {
     return chunkWebsiteDocument(document);
   }
 }
+
+
+
