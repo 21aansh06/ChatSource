@@ -9,7 +9,7 @@ enum SourceType {
   PDF
   WEBSITE
   TEXT
-  // Future YouTube or other extensions will be added here without schema breaking changes
+  YOUTUBE
 }
 
 enum IngestionStatus {

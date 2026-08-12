@@ -4,7 +4,7 @@ import React from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { CitationItem } from '@/lib/api/types';
-import { FileText, Globe, AlignLeft, ExternalLink, Quote, MapPin } from 'lucide-react';
+import { FileText, Globe, AlignLeft, ExternalLink, Quote, MapPin, Video } from 'lucide-react';
 
 interface CitationInspectorModalProps {
   citation: CitationItem | null;
@@ -23,6 +23,7 @@ export function CitationInspectorModal({
   const isPdf = citation.sourceType === 'PDF';
   const isWebsite = citation.sourceType === 'WEBSITE';
   const isText = citation.sourceType === 'TEXT';
+  const isYoutube = citation.sourceType === 'YOUTUBE';
 
   const pdfPage =
     loc.pageNumber !== undefined
@@ -31,7 +32,7 @@ export function CitationInspectorModal({
       ? String(loc.page)
       : null;
 
-  const websiteUrl = typeof loc.url === 'string' ? loc.url : null;
+  const targetUrl = typeof loc.url === 'string' ? loc.url : null;
 
   const sectionTitle =
     typeof loc.sectionTitle === 'string'
@@ -43,6 +44,13 @@ export function CitationInspectorModal({
   const lineRange =
     loc.lineStart !== undefined
       ? `${loc.lineStart}${loc.lineEnd ? `–${loc.lineEnd}` : ''}`
+      : null;
+
+  const timestamp =
+    typeof loc.timestampFormatted === 'string'
+      ? loc.timestampFormatted
+      : loc.startTime !== undefined
+      ? `${loc.startTime}s`
       : null;
 
   return (
@@ -59,6 +67,7 @@ export function CitationInspectorModal({
             {isPdf && <FileText className="h-4 w-4 text-sky-400" />}
             {isWebsite && <Globe className="h-4 w-4 text-emerald-400" />}
             {isText && <AlignLeft className="h-4 w-4 text-indigo-400" />}
+            {isYoutube && <Video className="h-4 w-4 text-rose-400" />}
             <span className="uppercase tracking-wider text-[11px] font-mono">{citation.sourceType}</span>
           </div>
 
@@ -67,7 +76,8 @@ export function CitationInspectorModal({
             {isPdf && pdfPage !== null && <span>Page {pdfPage}</span>}
             {isWebsite && sectionTitle && <span>{sectionTitle}</span>}
             {isText && lineRange && <span>Lines {lineRange}</span>}
-            {!pdfPage && !sectionTitle && !lineRange && <span>Source Chunk #{citation.chunkId.slice(0, 8)}</span>}
+            {isYoutube && timestamp && <span>Timestamp {timestamp}</span>}
+            {!pdfPage && !sectionTitle && !lineRange && !timestamp && <span>Source Chunk #{citation.chunkId.slice(0, 8)}</span>}
           </div>
         </div>
 
@@ -82,17 +92,19 @@ export function CitationInspectorModal({
           </p>
         </div>
 
-        {/* Website Direct Clickable URL Link */}
-        {isWebsite && websiteUrl && (
+        {/* Website / YouTube Direct Clickable URL Link */}
+        {(isWebsite || isYoutube) && targetUrl && (
           <div className="rounded-xl bg-white p-3 border border-slate-200 flex items-center justify-between text-xs">
-            <span className="font-semibold text-slate-500 font-heading">Original Website URL:</span>
+            <span className="font-semibold text-slate-500 font-heading">
+              {isYoutube ? 'YouTube Video Timestamp Link:' : 'Original Website URL:'}
+            </span>
             <a
-              href={websiteUrl}
+              href={targetUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1 font-mono font-bold text-sky-600 hover:underline"
+              className="inline-flex items-center gap-1 font-mono font-bold text-rose-600 hover:underline"
             >
-              <span>Open Link</span>
+              <span>{isYoutube ? `Play at ${timestamp || '00:00'}` : 'Open Link'}</span>
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
           </div>

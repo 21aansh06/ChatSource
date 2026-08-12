@@ -3,7 +3,7 @@ import { SourceType } from '@prisma/client';
 
 export const createSourceSchema = z.object({
   title: z.string().min(1, 'Source title is required').max(200).trim(),
-  type: z.nativeEnum(SourceType, { errorMap: () => ({ message: 'Invalid source type (PDF, WEBSITE, TEXT)' }) }),
+  type: z.nativeEnum(SourceType, { errorMap: () => ({ message: 'Invalid source type (PDF, WEBSITE, TEXT, YOUTUBE)' }) }),
   
   fileKey: z.string().optional(), 
   url: z.string().url('Invalid URL format').optional(),

@@ -3,7 +3,7 @@
 import React from 'react';
 import { Source } from '@/lib/api/types';
 import { SourceStatusBadge } from './SourceStatusBadge';
-import { FileText, Globe, AlignLeft, Trash2, ExternalLink, Info } from 'lucide-react';
+import { FileText, Globe, AlignLeft, Trash2, ExternalLink, Info, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SourceCardProps {
@@ -44,6 +44,7 @@ export function SourceCard({ source, onDelete }: SourceCardProps) {
               {source.type === 'PDF' && <FileText className="h-4 w-4 text-sky-600" />}
               {source.type === 'WEBSITE' && <Globe className="h-4 w-4 text-emerald-600" />}
               {source.type === 'TEXT' && <AlignLeft className="h-4 w-4 text-indigo-600" />}
+              {source.type === 'YOUTUBE' && <Video className="h-4 w-4 text-rose-600" />}
             </div>
 
             <div className="min-w-0">
@@ -67,7 +68,7 @@ export function SourceCard({ source, onDelete }: SourceCardProps) {
 
         {/* Source metadata & content previews */}
         <div className="text-xs text-slate-500 space-y-1">
-          {source.type === 'WEBSITE' && source.url && (
+          {(source.type === 'WEBSITE' || source.type === 'YOUTUBE') && source.url && (
             <a
               href={source.url}
               target="_blank"

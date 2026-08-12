@@ -37,6 +37,8 @@ export class SourcesService {
       fileSize = uploadPayload.size;
     } else if (input.type === SourceType.PDF && !fileKey) {
       throw new Error('PDF file upload is required for PDF source type.');
+    } else if (input.type === SourceType.YOUTUBE && !input.url) {
+      throw new Error('YouTube URL is required for YOUTUBE source type.');
     }
 
     // 2. Create Source record with async PENDING status

@@ -10,10 +10,10 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useCreateSourceMutation } from '../api/use-sources';
 import { SourceType } from '@/lib/api/types';
-import { FileText, Globe, AlignLeft, Upload, Loader2, Plus, CheckCircle2 } from 'lucide-react';
+import { FileText, Globe, AlignLeft, Upload, Loader2, Plus, CheckCircle2, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-// Schemas for the 3 tabs
+// Schemas for the 4 tabs
 const pdfSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200).trim(),
 });
@@ -26,6 +26,11 @@ const websiteSchema = z.object({
 const textSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200).trim(),
   rawText: z.string().min(10, 'Raw text must be at least 10 characters').max(50000, 'Text cannot exceed 50,000 characters'),
+});
+
+const youtubeSchema = z.object({
+  title: z.string().max(200).trim().optional(),
+  url: z.string().url('Please enter a valid YouTube URL (e.g. https://www.youtube.com/watch?v=...)'),
 });
 
 interface AddSourceDialogProps {
@@ -55,6 +60,11 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
   const textForm = useForm<z.infer<typeof textSchema>>({
     resolver: zodResolver(textSchema),
     defaultValues: { title: '', rawText: '' },
+  });
+
+  const youtubeForm = useForm<z.infer<typeof youtubeSchema>>({
+    resolver: zodResolver(youtubeSchema),
+    defaultValues: { title: '', url: '' },
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,10 +142,25 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
     }
   };
 
+  const onSubmitYoutube = async (data: z.infer<typeof youtubeSchema>) => {
+    const formData = new FormData();
+    formData.append('title', data.title || 'YouTube Video');
+    formData.append('type', 'YOUTUBE');
+    formData.append('url', data.url);
+
+    try {
+      await createMutation.mutateAsync(formData);
+      handleClose();
+    } catch (err: any) {
+      console.error('YouTube Source Creation Error:', err);
+    }
+  };
+
   const handleClose = () => {
     pdfForm.reset();
     websiteForm.reset();
     textForm.reset();
+    youtubeForm.reset();
     setSelectedFile(null);
     setFileError(null);
     createMutation.reset();
@@ -151,18 +176,18 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
     >
       <div className="space-y-4 font-sans">
         {/* Source Type Selector Tabs */}
-        <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 border border-slate-200">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 rounded-xl bg-slate-100 p-1 border border-slate-200">
           <button
             type="button"
             onClick={() => setActiveTab('PDF')}
             className={cn(
-              "flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500",
+              "flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500",
               activeTab === 'PDF'
                 ? "bg-white text-slate-900 shadow-2xs border border-slate-200"
                 : "text-slate-500 hover:text-slate-900 cursor-pointer"
             )}
           >
-            <FileText className="h-4 w-4 text-sky-600" />
+            <FileText className="h-3.5 w-3.5 text-sky-600" />
             <span>PDF File</span>
           </button>
 
@@ -170,28 +195,42 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
             type="button"
             onClick={() => setActiveTab('WEBSITE')}
             className={cn(
-              "flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500",
+              "flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500",
               activeTab === 'WEBSITE'
                 ? "bg-white text-slate-900 shadow-2xs border border-slate-200"
                 : "text-slate-500 hover:text-slate-900 cursor-pointer"
             )}
           >
-            <Globe className="h-4 w-4 text-emerald-600" />
-            <span>Website Link</span>
+            <Globe className="h-3.5 w-3.5 text-emerald-600" />
+            <span>Website</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('TEXT')}
             className={cn(
-              "flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500",
+              "flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500",
               activeTab === 'TEXT'
                 ? "bg-white text-slate-900 shadow-2xs border border-slate-200"
                 : "text-slate-500 hover:text-slate-900 cursor-pointer"
             )}
           >
-            <AlignLeft className="h-4 w-4 text-indigo-600" />
+            <AlignLeft className="h-3.5 w-3.5 text-indigo-600" />
             <span>Raw Text</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('YOUTUBE')}
+            className={cn(
+              "flex items-center justify-center gap-1 rounded-lg py-2 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500",
+              activeTab === 'YOUTUBE'
+                ? "bg-white text-slate-900 shadow-2xs border border-slate-200"
+                : "text-slate-500 hover:text-slate-900 cursor-pointer"
+            )}
+          >
+            <Video className="h-3.5 w-3.5 text-rose-600" />
+            <span>YouTube</span>
           </button>
         </div>
 
@@ -380,7 +419,57 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
             </div>
           </form>
         )}
+
+        {/* TAB 4: YOUTUBE VIDEO SUBMISSION */}
+        {activeTab === 'YOUTUBE' && (
+          <form onSubmit={youtubeForm.handleSubmit(onSubmitYoutube)} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-900 font-heading">YouTube Video URL</label>
+              <Input
+                {...youtubeForm.register('url')}
+                placeholder="https://www.youtube.com/watch?v=..."
+                type="url"
+                disabled={createMutation.isPending}
+              />
+              {youtubeForm.formState.errors.url && (
+                <p className="text-xs text-rose-600 font-medium">{youtubeForm.formState.errors.url.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-900 font-heading">Source Title (Optional)</label>
+              <Input
+                {...youtubeForm.register('title')}
+                placeholder="Auto-extracted if left blank"
+                disabled={createMutation.isPending}
+              />
+              {youtubeForm.formState.errors.title && (
+                <p className="text-xs text-rose-600 font-medium">{youtubeForm.formState.errors.title.message}</p>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+              <Button type="button" variant="outline" onClick={handleClose} disabled={createMutation.isPending}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={createMutation.isPending} className="gap-1.5 shadow-sm">
+                {createMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-rose-400" />
+                    <span>Fetching Transcript...</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 text-rose-400" />
+                    <span>Ingest YouTube Video</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
+        )}
       </div>
     </Dialog>
   );
 }
+

@@ -22,7 +22,7 @@ export interface UpdateNotebookInput {
   description?: string;
 }
 
-export type SourceType = 'PDF' | 'WEBSITE' | 'TEXT';
+export type SourceType = 'PDF' | 'WEBSITE' | 'TEXT' | 'YOUTUBE';
 
 export type IngestionStatus =
   | 'PENDING'

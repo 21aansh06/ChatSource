@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { CitationItem } from '@/lib/api/types';
 import { CitationInspectorModal } from './CitationInspectorModal';
-import { FileText, Globe, AlignLeft, ExternalLink, Bookmark } from 'lucide-react';
+import { FileText, Globe, AlignLeft, ExternalLink, Bookmark, Video } from 'lucide-react';
 
 interface CitationListProps {
   citations: CitationItem[];
@@ -26,6 +26,7 @@ export function CitationList({ citations }: CitationListProps) {
           const isPdf = c.sourceType === 'PDF';
           const isWebsite = c.sourceType === 'WEBSITE';
           const isText = c.sourceType === 'TEXT';
+          const isYoutube = c.sourceType === 'YOUTUBE';
 
           const loc = c.locationMetadata || {};
           const pdfPage =
@@ -35,10 +36,17 @@ export function CitationList({ citations }: CitationListProps) {
               ? String(loc.page)
               : null;
 
-          const websiteUrl = typeof loc.url === 'string' ? loc.url : null;
+          const targetUrl = typeof loc.url === 'string' ? loc.url : null;
           const lineRange =
             loc.lineStart !== undefined
               ? `${loc.lineStart}${loc.lineEnd ? `–${loc.lineEnd}` : ''}`
+              : null;
+
+          const timestamp =
+            typeof loc.timestampFormatted === 'string'
+              ? loc.timestampFormatted
+              : loc.startTime !== undefined
+              ? `${loc.startTime}s`
               : null;
 
           return (
@@ -55,6 +63,7 @@ export function CitationList({ citations }: CitationListProps) {
               {isPdf && <FileText className="h-3.5 w-3.5 shrink-0 text-sky-600" />}
               {isWebsite && <Globe className="h-3.5 w-3.5 shrink-0 text-emerald-600" />}
               {isText && <AlignLeft className="h-3.5 w-3.5 shrink-0 text-indigo-600" />}
+              {isYoutube && <Video className="h-3.5 w-3.5 shrink-0 text-rose-600" />}
 
               {/* Source Title & Location */}
               <button
@@ -73,16 +82,21 @@ export function CitationList({ citations }: CitationListProps) {
                     (L {lineRange})
                   </span>
                 )}
+                {isYoutube && timestamp && (
+                  <span className="ml-1 font-mono text-[10px] text-rose-600 font-extrabold bg-rose-50 px-1 py-0.2 rounded border border-rose-200">
+                    ({timestamp})
+                  </span>
+                )}
               </button>
 
-              {/* Direct Clickable Website External Link */}
-              {isWebsite && websiteUrl && (
+              {/* Direct Clickable Website / YouTube Timestamp External Link */}
+              {(isWebsite || isYoutube) && targetUrl && (
                 <a
-                  href={websiteUrl}
+                  href={targetUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="rounded p-0.5 hover:bg-white transition-colors text-slate-500 hover:text-sky-600"
-                  title="Open external website link directly"
+                  className="rounded p-0.5 hover:bg-white transition-colors text-slate-500 hover:text-rose-600"
+                  title={isYoutube ? `Open YouTube at exact timestamp (${timestamp || '00:00'})` : "Open external link directly"}
                 >
                   <ExternalLink className="h-3 w-3" />
                 </a>

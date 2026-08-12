@@ -215,10 +215,79 @@ ${generatedAnswer}
   }
 
 
-  private static buildDeterministicCitations(
+  /**
+   * Dynamically filters and re-indexes citations to include ONLY the chunks
+   * actually referenced and cited in the generated answer text.
+   */
+  private static filterAndBuildUsedCitations(
+    answerText: string,
     chunks: ScoredChunk[]
-  ): CitationItem[] {
-    return chunks.map((chunk, index) => ({
+  ): { cleanedAnswer: string; citations: CitationItem[] } {
+    if (!answerText || !chunks || chunks.length === 0) {
+      return { cleanedAnswer: answerText, citations: [] };
+    }
+
+    // 1. Extract all citation numbers [1], [2], [1, 2] from answer text
+    const matches = Array.from(answerText.matchAll(/\[(\d+)\]/g));
+    
+    // Extract unique 1-based index numbers cited by LLM in order of appearance
+    const cited1BasedIndices: number[] = [];
+    for (const match of matches) {
+      const idx = parseInt(match[1], 10);
+      if (idx >= 1 && idx <= chunks.length && !cited1BasedIndices.includes(idx)) {
+        cited1BasedIndices.push(idx);
+      }
+    }
+
+    // 2. If explicit citations were matched in the answer text:
+    if (cited1BasedIndices.length > 0) {
+      const oldToNewIndexMap = new Map<number, number>();
+      const usedCitations: CitationItem[] = [];
+
+      cited1BasedIndices.forEach((oldIdx, newSeqIdx) => {
+        const newCitationId = newSeqIdx + 1;
+        oldToNewIndexMap.set(oldIdx, newCitationId);
+
+        const chunk = chunks[oldIdx - 1];
+        if (chunk) {
+          usedCitations.push({
+            citationId: newCitationId,
+            chunkId: chunk.chunkId,
+            sourceId: chunk.sourceId,
+            sourceTitle: chunk.sourceTitle ?? "Untitled Source",
+            sourceType: chunk.sourceType ?? "DOCUMENT",
+            locationMetadata: chunk.locationMetadata,
+            snippet:
+              chunk.content.length > 150
+                ? `${chunk.content.slice(0, 150)}...`
+                : chunk.content,
+          });
+        }
+      });
+
+      // Re-map citation numbers in answer text if numbering shifted
+      const cleanedAnswer = answerText.replace(/\[(\d+)\]/g, (match, p1) => {
+        const oldNum = parseInt(p1, 10);
+        const newNum = oldToNewIndexMap.get(oldNum);
+        return newNum ? `[${newNum}]` : match;
+      });
+
+      return { cleanedAnswer, citations: usedCitations };
+    }
+
+    // 3. Fallback: If LLM didn't produce bracket markers [N], deduplicate sources and return top 2 most relevant chunks
+    const deduplicatedChunks: ScoredChunk[] = [];
+    const seenSourceIds = new Set<string>();
+
+    for (const chunk of chunks) {
+      if (!seenSourceIds.has(chunk.sourceId)) {
+        seenSourceIds.add(chunk.sourceId);
+        deduplicatedChunks.push(chunk);
+      }
+      if (deduplicatedChunks.length >= 2) break;
+    }
+
+    const fallbackCitations = deduplicatedChunks.map((chunk, index) => ({
       citationId: index + 1,
       chunkId: chunk.chunkId,
       sourceId: chunk.sourceId,
@@ -230,6 +299,8 @@ ${generatedAnswer}
           ? `${chunk.content.slice(0, 150)}...`
           : chunk.content,
     }));
+
+    return { cleanedAnswer: answerText, citations: fallbackCitations };
   }
 
 
@@ -386,12 +457,14 @@ ${userQuery}`,
         judge.faithfulnessScore >= 0.7 &&
         judge.relevanceScore >= 0.7
       ) {
-        return {
+        const { cleanedAnswer, citations } = this.filterAndBuildUsedCitations(
           answer,
-          citations:
-            this.buildDeterministicCitations(
-              selectedChunks
-            ),
+          selectedChunks
+        );
+
+        return {
+          answer: cleanedAnswer,
+          citations,
           isLowConfidence: false,
           faithfulnessScore:
             judge.faithfulnessScore,
