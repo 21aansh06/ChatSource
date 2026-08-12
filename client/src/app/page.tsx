@@ -243,7 +243,7 @@ export default function HomePage() {
                 <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-sky-600 shrink-0" />
                 <span>
                   <span className="inline sm:hidden">PDF</span>
-                  <span className="hidden sm:inline">PDF Paper</span>
+                  <span className="hidden sm:inline">PDF File</span>
                 </span>
               </button>
 

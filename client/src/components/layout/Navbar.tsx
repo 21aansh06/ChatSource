@@ -66,7 +66,7 @@ export function Navbar() {
                   <Sparkles className="h-3.5 w-3.5 text-sky-400 shrink-0" />
                   <span className="hidden xs:inline sm:hidden">Try Free</span>
                   <span className="hidden sm:inline">Try ChatSource Free</span>
-                  <span className="xs:hidden">Free</span>
+                  <span className="xs:hidden sm:hidden">Free</span>
                 </button>
               </SignUpButton>
             </div>

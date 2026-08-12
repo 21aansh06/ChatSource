@@ -422,51 +422,52 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
 
         {/* TAB 4: YOUTUBE VIDEO SUBMISSION */}
         {activeTab === 'YOUTUBE' && (
-          <form onSubmit={youtubeForm.handleSubmit(onSubmitYoutube)} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-900 font-heading">YouTube Video URL</label>
-              <Input
-                {...youtubeForm.register('url')}
-                placeholder="https://www.youtube.com/watch?v=..."
-                type="url"
-                disabled={createMutation.isPending}
-              />
-              {youtubeForm.formState.errors.url && (
-                <p className="text-xs text-rose-600 font-medium">{youtubeForm.formState.errors.url.message}</p>
-              )}
-            </div>
+          <div>Still in development, not ready for production yet.</div>
+          // <form onSubmit={youtubeForm.handleSubmit(onSubmitYoutube)} className="space-y-4">
+          //   <div className="space-y-1.5">
+          //     <label className="text-xs font-bold text-slate-900 font-heading">YouTube Video URL</label>
+          //     <Input
+          //       {...youtubeForm.register('url')}
+          //       placeholder="https://www.youtube.com/watch?v=..."
+          //       type="url"
+          //       disabled={createMutation.isPending}
+          //     />
+          //     {youtubeForm.formState.errors.url && (
+          //       <p className="text-xs text-rose-600 font-medium">{youtubeForm.formState.errors.url.message}</p>
+          //     )}
+          //   </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-900 font-heading">Source Title (Optional)</label>
-              <Input
-                {...youtubeForm.register('title')}
-                placeholder="Auto-extracted if left blank"
-                disabled={createMutation.isPending}
-              />
-              {youtubeForm.formState.errors.title && (
-                <p className="text-xs text-rose-600 font-medium">{youtubeForm.formState.errors.title.message}</p>
-              )}
-            </div>
+          //   <div className="space-y-1.5">
+          //     <label className="text-xs font-bold text-slate-900 font-heading">Source Title (Optional)</label>
+          //     <Input
+          //       {...youtubeForm.register('title')}
+          //       placeholder="Auto-extracted if left blank"
+          //       disabled={createMutation.isPending}
+          //     />
+          //     {youtubeForm.formState.errors.title && (
+          //       <p className="text-xs text-rose-600 font-medium">{youtubeForm.formState.errors.title.message}</p>
+          //     )}
+          //   </div>
 
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
-              <Button type="button" variant="outline" onClick={handleClose} disabled={createMutation.isPending}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={createMutation.isPending} className="gap-1.5 shadow-sm">
-                {createMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin text-rose-400" />
-                    <span>Fetching Transcript...</span>
-                  </>
-                ) : (
-                  <>
-                    <Plus className="h-4 w-4 text-rose-400" />
-                    <span>Ingest YouTube Video</span>
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
+          //   <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          //     <Button type="button" variant="outline" onClick={handleClose} disabled={createMutation.isPending}>
+          //       Cancel
+          //     </Button>
+          //     <Button type="submit" disabled={createMutation.isPending} className="gap-1.5 shadow-sm">
+          //       {createMutation.isPending ? (
+          //         <>
+          //           <Loader2 className="h-4 w-4 animate-spin text-rose-400" />
+          //           <span>Fetching Transcript...</span>
+          //         </>
+          //       ) : (
+          //         <>
+          //           <Plus className="h-4 w-4 text-rose-400" />
+          //           <span>Ingest YouTube Video</span>
+          //         </>
+          //       )}
+          //     </Button>
+          //   </div>
+          // </form>
         )}
       </div>
     </Dialog>
