@@ -92,13 +92,30 @@ export function UserAvatar() {
             </div>
           </div>
 
-          {/* Plan Summary Banner */}
-          <div className="mt-2.5 rounded-xl bg-slate-50 p-2.5 border border-slate-100 flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 text-slate-600 font-semibold">
-              <Shield className="h-3.5 w-3.5 text-sky-600" />
-              <span>Current Account Plan:</span>
+          {/* Plan & Usage Summary Card */}
+          <div className="mt-2.5 rounded-xl bg-slate-50 p-3 border border-slate-100 space-y-2 text-xs font-sans">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-slate-600 font-semibold">
+                <Shield className="h-3.5 w-3.5 text-sky-600" />
+                <span>Account Plan:</span>
+              </div>
+              <span className="font-extrabold text-slate-900 font-mono text-[11px]">{plan}</span>
             </div>
-            <span className="font-extrabold text-slate-900 font-mono text-[11px]">{plan}</span>
+
+            <div className="pt-2 border-t border-slate-200/60 space-y-1.5 text-[11px]">
+              <div className="flex items-center justify-between text-slate-600">
+                <span>Sources Added:</span>
+                <span className="font-mono font-bold text-slate-900">
+                  {isPaid ? 'Unlimited' : `${dbUser?.usage?.sourcesAddedCount ?? 0} / 2`}
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-slate-600">
+                <span>AI Queries Used:</span>
+                <span className="font-mono font-bold text-slate-900">
+                  {isPaid ? 'Unlimited' : `${dbUser?.usage?.successfulQueriesCount ?? 0} / 3`}
+                </span>
+              </div>
+            </div>
           </div>
 
           {/* Sign Out Action Button */}

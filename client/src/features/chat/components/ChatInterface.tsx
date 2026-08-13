@@ -17,6 +17,7 @@ import { apiClient } from '@/lib/api/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Sparkles, AlertCircle, RefreshCw, Plus, ShieldCheck, ArrowRight, Lightbulb, Compass } from 'lucide-react';
+import { USER_QUERY_KEY } from '@/features/users/api/use-user';
 
 interface ChatInterfaceProps {
   notebookId: string;
@@ -130,6 +131,9 @@ export function ChatInterface({ notebookId, hasReadySources }: ChatInterfaceProp
                 queryClient.invalidateQueries({
                   queryKey: [...CHAT_SESSIONS_QUERY_KEY, notebookId],
                 });
+                queryClient.invalidateQueries({
+                  queryKey: USER_QUERY_KEY,
+                });
               } else if (event.type === 'error') {
                 setStreamError(event.payload.error || 'Generation error occurred.');
                 setIsStreaming(false);
@@ -183,6 +187,7 @@ export function ChatInterface({ notebookId, hasReadySources }: ChatInterfaceProp
       console.error('Failed to ask question:', err);
       setStreamError(err?.message || 'Failed to submit question.');
       setIsStreaming(false);
+      queryClient.invalidateQueries({ queryKey: USER_QUERY_KEY });
     }
   };
 

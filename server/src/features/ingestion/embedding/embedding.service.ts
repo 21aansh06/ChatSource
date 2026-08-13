@@ -23,4 +23,12 @@ export class EmbeddingService {
   static async generateEmbeddings(texts: string[]): Promise<number[][]> {
     return this.provider.generateBatchEmbeddings(texts);
   }
+
+  static async generateEmbeddingsWithUsage(texts: string[]): Promise<{ embeddings: number[][]; totalTokens: number }> {
+    if ('generateBatchEmbeddingsWithUsage' in this.provider && typeof (this.provider as any).generateBatchEmbeddingsWithUsage === 'function') {
+      return (this.provider as any).generateBatchEmbeddingsWithUsage(texts);
+    }
+    const embeddings = await this.provider.generateBatchEmbeddings(texts);
+    return { embeddings, totalTokens: 0 };
+  }
 }

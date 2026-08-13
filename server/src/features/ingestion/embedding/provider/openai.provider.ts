@@ -19,14 +19,15 @@ export class OpenAIEmbeddingProvider implements EmbeddingProvider {
     this.model = env.OPENAI_EMBEDDING_MODEL;
   }
 
-  async generateBatchEmbeddings(
+  async generateBatchEmbeddingsWithUsage(
     texts: string[]
-  ): Promise<number[][]> {
+  ): Promise<{ embeddings: number[][]; totalTokens: number }> {
     if (texts.length === 0) {
-      return [];
+      return { embeddings: [], totalTokens: 0 };
     }
 
     const embeddings: number[][] = [];
+    let totalTokens = 0;
 
     for (
       let i = 0;
@@ -44,6 +45,8 @@ export class OpenAIEmbeddingProvider implements EmbeddingProvider {
           input: batch,
         });
 
+      totalTokens += response.usage?.total_tokens ?? 0;
+
       response.data
         .sort((a, b) => a.index - b.index)
         .forEach((item) => {
@@ -51,6 +54,13 @@ export class OpenAIEmbeddingProvider implements EmbeddingProvider {
         });
     }
 
-    return embeddings;
+    return { embeddings, totalTokens };
+  }
+
+  async generateBatchEmbeddings(
+    texts: string[]
+  ): Promise<number[][]> {
+    const res = await this.generateBatchEmbeddingsWithUsage(texts);
+    return res.embeddings;
   }
 }

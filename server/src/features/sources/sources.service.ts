@@ -1,12 +1,15 @@
 import { randomUUID } from 'crypto';
 import { prisma } from '../../infra/prisma.js';
 import { CreateSourceInput } from './sources.schema.js';
-import { IngestionStatus, SourceType } from '@prisma/client';
+import { IngestionStatus, SourceType, UserPlan } from '@prisma/client';
 import { enqueueSourceIngestion } from '../ingestion/queue/ingestion.queue.js';
 import { VectorStoreService } from '../ingestion/vectorstore/vectorstore.service.js';
 import { StorageService } from '../storage/storage.service.js';
 import { generateStorageKey } from '../storage/storage.utils.js';
 import { parseMulterFile } from '../storage/storage.schema.js';
+import { UsersService } from '../users/users.service.js';
+import { UsageService } from '../users/usage.service.js';
+import { PlanLimitError } from '../../utils/errors.js';
 
 export class SourcesService {
   static async createSource(
@@ -21,6 +24,13 @@ export class SourcesService {
 
     if (!notebook) {
       return null;
+    }
+
+    // Check Free Plan source upload limit (Max 2 sources total)
+    const user = await UsersService.getOrCreateUser(userId);
+    const usage = await UsageService.getUserUsage(userId);
+    if (user?.plan === UserPlan.FREE && (usage?.sourcesAddedCount ?? 0) >= 2) {
+      throw new PlanLimitError('Free plan limit reached (2/2 sources added). Please upgrade to a Paid plan for unlimited sources.');
     }
 
     let fileKey: string | undefined = input.fileKey;

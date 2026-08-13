@@ -16,6 +16,7 @@ import {
 } from './ingestion.queue.js';
 import { EmbeddingService } from '../embedding/embedding.service.js';
 import { VectorStoreService } from '../vectorstore/vectorstore.service.js';
+import { UsageService } from '../../users/usage.service.js';
 /**
  * Register all source handlers into IngestionRegistry at boot time
  */
@@ -136,7 +137,7 @@ export const ingestionEmbedWorker = new Worker<IngestionEmbedJobData>(
         },
       });
       const contents = chunks.map((c) => c.content);
-      const embeddings = await EmbeddingService.generateEmbeddings(contents);
+      const { embeddings, totalTokens } = await EmbeddingService.generateEmbeddingsWithUsage(contents);
       const points = chunks.map((chunk, idx) => ({
         chunkId: chunk.id,
         sourceId: chunk.sourceId,
@@ -174,7 +175,14 @@ export const ingestionEmbedWorker = new Worker<IngestionEmbedJobData>(
           status: IngestionStatus.COMPLETED,
         },
       });
-      console.log(`🎉 [EmbedWorker] Successfully embedded and indexed source ${sourceId} into Qdrant Cloud.`);
+
+      // Record successful source addition and embedding tokens for the user
+      await UsageService.incrementSuccessfulSource(source.userId);
+      if (totalTokens > 0) {
+        await UsageService.addEmbeddingTokens(source.userId, totalTokens);
+      }
+
+      console.log(`🎉 [EmbedWorker] Successfully embedded (${totalTokens} tokens) and indexed source ${sourceId} for user ${source.userId}.`);
     } catch (err: any) {
       console.error(`❌ [EmbedWorker] Embedding/Indexing failed for source ${sourceId}:`, err?.message || err);
       await prisma.source.update({

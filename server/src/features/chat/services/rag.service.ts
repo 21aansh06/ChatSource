@@ -8,7 +8,10 @@ import {
   QueryExpansionResult,
   JudgeResponse,
 } from "../schemas/chat.schema.js";
-import { OpenAILLMProvider } from "../llm/openai.provider.js";
+import { OpenAILLMProvider, LLMTokenUsage } from "../llm/openai.provider.js";
+import { UsersService } from "../../users/users.service.js";
+import { UsageService } from "../../users/usage.service.js";
+import { UserPlan } from "@prisma/client";
 
 export interface CitationItem {
   citationId: number;
@@ -40,9 +43,9 @@ export class RAGService {
     this.llm = provider;
   }
 
-  private static async expandQuery(
+  private static async expandQueryWithUsage(
     userQuery: string
-  ): Promise<string[]> {
+  ): Promise<{ expandedQueries: string[]; usage: LLMTokenUsage }> {
     const systemPrompt = `
 You are a query expansion assistant for a production RAG search engine.
 
@@ -67,33 +70,36 @@ Rules:
 - Never explain your reasoning.
 `;
 
-    try {
-      const result =
-        await this.llm.generateStructuredJSON<QueryExpansionResult>(
-          [
-            {
-              role: "system",
-              content: systemPrompt,
-            },
-            {
-              role: "user",
-              content: userQuery,
-            },
-          ],
-          {
-            temperature: 0.1,
-          }
-        );
+    let usage: LLMTokenUsage = { promptTokens: 0, completionTokens: 0 };
 
-      const parsed =
-        queryExpansionSchema.safeParse(result);
+    try {
+      let resultData: QueryExpansionResult;
+
+      if ('generateStructuredJSONWithUsage' in this.llm) {
+        const res = await (this.llm as OpenAILLMProvider).generateStructuredJSONWithUsage<QueryExpansionResult>(
+          [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userQuery },
+          ],
+          { temperature: 0.1 }
+        );
+        resultData = res.data;
+        usage = res.usage;
+      } else {
+        resultData = await this.llm.generateStructuredJSON<QueryExpansionResult>(
+          [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userQuery },
+          ],
+          { temperature: 0.1 }
+        );
+      }
+
+      const parsed = queryExpansionSchema.safeParse(resultData);
 
       if (!parsed.success) {
-        console.warn(
-          "[RAGService] Query expansion schema validation failed."
-        );
-
-        return [userQuery];
+        console.warn("[RAGService] Query expansion schema validation failed.");
+        return { expandedQueries: [userQuery], usage };
       }
 
       const data = parsed.data;
@@ -106,7 +112,7 @@ Rules:
         ...(data.subQuestions ?? []),
       ];
 
-      return Array.from(
+      const expandedQueries = Array.from(
         new Set(
           variants
             .filter(Boolean)
@@ -114,22 +120,19 @@ Rules:
             .filter((q) => q.length > 0)
         )
       ).slice(0, this.MAX_QUERY_VARIANTS);
-    } catch (error) {
-      console.warn(
-        "[RAGService] Query expansion failed.",
-        error
-      );
 
-      return [userQuery];
+      return { expandedQueries, usage };
+    } catch (error) {
+      console.warn("[RAGService] Query expansion failed.", error);
+      return { expandedQueries: [userQuery], usage };
     }
   }
 
-
-  private static async judgeAnswer(
+  private static async judgeAnswerWithUsage(
     userQuery: string,
     retrievedContext: string,
     generatedAnswer: string
-  ): Promise<JudgeResponse> {
+  ): Promise<{ judge: JudgeResponse; usage: LLMTokenUsage }> {
     const judgePrompt = `
 You are a strict RAG evaluation judge.
 
@@ -181,37 +184,42 @@ ${generatedAnswer}
       },
     ];
 
-    try {
-      const result =
-        await this.llm.generateStructuredJSON<JudgeResponse>(
-          messages,
-          {
-            temperature: 0,
-          }
-        );
-
-      const parsed =
-        judgeResponseSchema.safeParse(result);
-
-      if (parsed.success) {
-        return parsed.data;
-      }
-
-      console.warn(
-        "[RAGService] Judge schema validation failed."
-      );
-    } catch (error) {
-      console.warn(
-        "[RAGService] Judge failed.",
-        error
-      );
-    }
-
-    return {
+    let usage: LLMTokenUsage = { promptTokens: 0, completionTokens: 0 };
+    const fallbackJudge: JudgeResponse = {
       faithfulnessScore: 0.5,
       relevanceScore: 0.5,
       reasoning: "Fallback score",
     };
+
+    try {
+      let resultData: JudgeResponse;
+
+      if ('generateStructuredJSONWithUsage' in this.llm) {
+        const res = await (this.llm as OpenAILLMProvider).generateStructuredJSONWithUsage<JudgeResponse>(
+          messages,
+          { temperature: 0 }
+        );
+        resultData = res.data;
+        usage = res.usage;
+      } else {
+        resultData = await this.llm.generateStructuredJSON<JudgeResponse>(
+          messages,
+          { temperature: 0 }
+        );
+      }
+
+      const parsed = judgeResponseSchema.safeParse(resultData);
+
+      if (parsed.success) {
+        return { judge: parsed.data, usage };
+      }
+
+      console.warn("[RAGService] Judge schema validation failed.");
+    } catch (error) {
+      console.warn("[RAGService] Judge failed.", error);
+    }
+
+    return { judge: fallbackJudge, usage };
   }
 
 
@@ -310,7 +318,35 @@ ${generatedAnswer}
     userQuery: string,
     onToken?: (token: string) => Promise<void> | void
   ): Promise<RAGAnswerResult> {
-    const expandedQueries = await this.expandQuery(userQuery);
+    // Check Free Plan query limit (Max 3 successful queries)
+    const user = await UsersService.getOrCreateUser(userId);
+    const usageRecord = await UsageService.getUserUsage(userId);
+
+    if (user?.plan === UserPlan.FREE && (usageRecord?.successfulQueriesCount ?? 0) >= 3) {
+      const limitMsg = "Free plan limit reached (3/3 AI queries completed). Please upgrade to a Paid plan for unlimited AI queries.";
+      if (onToken) {
+        await onToken(limitMsg);
+      }
+      return {
+        answer: limitMsg,
+        citations: [],
+        isLowConfidence: true,
+        retryAttempts: 0,
+      };
+    }
+
+    let totalPromptTokens = 0;
+    let totalCompletionTokens = 0;
+
+    const addUsage = (u?: { promptTokens?: number; completionTokens?: number }) => {
+      if (u) {
+        totalPromptTokens += u.promptTokens || 0;
+        totalCompletionTokens += u.completionTokens || 0;
+      }
+    };
+
+    const { expandedQueries, usage: expansionUsage } = await this.expandQueryWithUsage(userQuery);
+    addUsage(expansionUsage);
 
     const { scoredChunks } =
       await RetrievalService.searchNotebookChunks(
@@ -337,6 +373,8 @@ ${generatedAnswer}
       if (onToken) {
         await onToken(fallback);
       }
+
+      await UsageService.addChatTokens(userId, totalPromptTokens, totalCompletionTokens);
 
       return {
         answer: fallback,
@@ -422,32 +460,34 @@ ${userQuery}`,
       ];
 
       let answer = "";
+      let llmUsage: LLMTokenUsage | undefined;
 
       if (onToken) {
-        answer =
-          await this.llm.streamCompletion(
-            prompt,
-            onToken,
-            {
-              temperature: 0,
-            }
-          );
+        if ('streamCompletionWithUsage' in this.llm) {
+          const res = await (this.llm as OpenAILLMProvider).streamCompletionWithUsage(prompt, onToken, { temperature: 0 });
+          answer = res.text;
+          llmUsage = res.usage;
+        } else {
+          answer = await this.llm.streamCompletion(prompt, onToken, { temperature: 0 });
+        }
       } else {
-        answer =
-          await this.llm.generateCompletion(
-            prompt,
-            {
-              temperature: 0,
-            }
-          );
+        if ('generateCompletionWithUsage' in this.llm) {
+          const res = await (this.llm as OpenAILLMProvider).generateCompletionWithUsage(prompt, { temperature: 0 });
+          answer = res.text;
+          llmUsage = res.usage;
+        } else {
+          answer = await this.llm.generateCompletion(prompt, { temperature: 0 });
+        }
       }
 
-      const judge =
-        await this.judgeAnswer(
-          userQuery,
-          context,
-          answer
-        );
+      addUsage(llmUsage);
+
+      const { judge, usage: judgeUsage } = await this.judgeAnswerWithUsage(
+        userQuery,
+        context,
+        answer
+      );
+      addUsage(judgeUsage);
 
       console.log(
         `[RAGService] Attempt ${attempt} | Faithfulness=${judge.faithfulnessScore} | Relevance=${judge.relevanceScore}`
@@ -461,6 +501,9 @@ ${userQuery}`,
           answer,
           selectedChunks
         );
+
+        // Record successful query & ALL accumulated chat tokens (query expansion + retries + judge + final answer)
+        await UsageService.recordQuerySuccess(userId, totalPromptTokens, totalCompletionTokens);
 
         return {
           answer: cleanedAnswer,
@@ -478,6 +521,8 @@ ${userQuery}`,
     console.warn(
       "[RAGService] Retry budget exhausted."
     );
+
+    await UsageService.addChatTokens(userId, totalPromptTokens, totalCompletionTokens);
 
     return {
       answer:

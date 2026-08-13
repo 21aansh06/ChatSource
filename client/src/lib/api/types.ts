@@ -5,6 +5,11 @@
 
 export type UserPlan = 'FREE' | 'PAID';
 
+export interface UserUsage {
+  sourcesAddedCount: number;
+  successfulQueriesCount: number;
+}
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -14,6 +19,7 @@ export interface UserProfile {
   plan: UserPlan;
   createdAt: string;
   updatedAt: string;
+  usage?: UserUsage | null;
 }
 
 export interface Notebook {

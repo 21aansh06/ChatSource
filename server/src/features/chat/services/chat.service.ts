@@ -1,6 +1,9 @@
 import { prisma } from '../../../infra/prisma.js';
-import { ChatRole } from '@prisma/client';
+import { ChatRole, UserPlan } from '@prisma/client';
 import { chatAnswerQueue } from '../queue/chat.queue.js';
+import { UsersService } from '../../users/users.service.js';
+import { UsageService } from '../../users/usage.service.js';
+import { PlanLimitError } from '../../../utils/errors.js';
 
 export class ChatService {
   static async enqueueQuestion(
@@ -16,6 +19,13 @@ export class ChatService {
 
     if (!notebook) {
       throw new Error('Notebook not found or unauthorized access');
+    }
+
+    // Check Free Plan AI query limit (Max 3 successful queries)
+    const user = await UsersService.getOrCreateUser(userId);
+    const usage = await UsageService.getUserUsage(userId);
+    if (user?.plan === UserPlan.FREE && (usage?.successfulQueriesCount ?? 0) >= 3) {
+      throw new PlanLimitError('Free plan limit reached (3/3 AI queries completed). Please upgrade to a Paid plan for unlimited AI queries.');
     }
 
     // 2. Get or Create ChatSession
