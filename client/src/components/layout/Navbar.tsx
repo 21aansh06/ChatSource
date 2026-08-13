@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useAuth, UserButton, SignInButton, SignUpButton } from '@clerk/nextjs';
+import { useAuth, SignInButton, SignUpButton } from '@clerk/nextjs';
 import { BookOpen, Sparkles, FolderKanban } from 'lucide-react';
+import { UserAvatar } from './UserAvatar';
 
 export function Navbar() {
   const { isSignedIn, isLoaded } = useAuth();
@@ -46,13 +47,7 @@ export function Navbar() {
                 <FolderKanban className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-sky-400" />
                 <span>My Notebooks</span>
               </Link>
-              <UserButton
-                appearance={{
-                  elements: {
-                    avatarBox: "w-8 h-8 sm:w-9 sm:h-9 border-2 border-slate-200 shadow-xs hover:border-sky-400 transition-colors"
-                  }
-                }}
-              />
+              <UserAvatar />
             </div>
           ) : (
             <div className="flex items-center gap-1.5 sm:gap-2.5">

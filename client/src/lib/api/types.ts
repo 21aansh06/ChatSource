@@ -3,6 +3,19 @@
  * Strictly mirrors the backend Prisma schemas and Express DTOs
  */
 
+export type UserPlan = 'FREE' | 'PAID';
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  imageUrl?: string | null;
+  plan: UserPlan;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Notebook {
   id: string;
   userId: string;
