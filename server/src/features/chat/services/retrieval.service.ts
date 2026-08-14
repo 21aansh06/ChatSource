@@ -22,19 +22,29 @@ export class RetrievalService {
     notebookId: string,
     queries: string[],
     topKPerQuery = 10,
-    rerankTopN = 6
+    rerankTopN = 6,
+    sourceIds?: string[]
   ): Promise<{ scoredChunks: ScoredChunk[]; rawCandidateCount: number }> {
     const queryEmbeddings = await EmbeddingService.generateEmbeddings(queries);
+
+    const mustFilters: any[] = [
+      { key: 'notebookId', match: { value: notebookId } },
+      { key: 'userId', match: { value: userId } },
+    ];
+
+    if (sourceIds && sourceIds.length > 0) {
+      mustFilters.push({
+        key: 'sourceId',
+        match: { any: sourceIds },
+      });
+    }
 
     const searchPromises = queryEmbeddings.map((vector) =>
       qdrantClient.search(COLLECTION_NAME, {
         vector,
         limit: topKPerQuery,
         filter: {
-          must: [
-            { key: 'notebookId', match: { value: notebookId } },
-            { key: 'userId', match: { value: userId } },
-          ],
+          must: mustFilters,
         },
       })
     );
@@ -79,9 +89,9 @@ export class RetrievalService {
       return { scoredChunks: [], rawCandidateCount: 0 };
     }
 
-    const sourceIds = Array.from(new Set(candidates.map((c) => c.sourceId)));
+    const candidateSourceIds = Array.from(new Set(candidates.map((c) => c.sourceId)));
     const sources = await prisma.source.findMany({
-      where: { id: { in: sourceIds } },
+      where: { id: { in: candidateSourceIds } },
       select: { id: true, title: true, type: true },
     });
     const sourceMap = new Map(sources.map((s) => [s.id, s]));

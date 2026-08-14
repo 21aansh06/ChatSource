@@ -12,23 +12,38 @@ import {
 } from '../api/use-chat';
 import { ChatMessageItem } from './ChatMessageItem';
 import { ChatInput } from './ChatInput';
+import { SourceSelector } from './SourceSelector';
+import { useSourcesQuery } from '@/features/sources/api/use-sources';
 import { CitationItem, ChatMessage, SSEChatEvent } from '@/lib/api/types';
 import { apiClient } from '@/lib/api/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { MessageSquare, Sparkles, AlertCircle, RefreshCw, Plus, ShieldCheck, ArrowRight, Lightbulb, Compass } from 'lucide-react';
+import { MessageSquare, Sparkles, AlertCircle, RefreshCw, Plus, ShieldCheck, ArrowRight, Lightbulb, Compass, Layers, ChevronUp, ChevronDown, Filter } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { USER_QUERY_KEY } from '@/features/users/api/use-user';
 
 interface ChatInterfaceProps {
   notebookId: string;
   hasReadySources: boolean;
+  selectedSourceIds?: string[];
+  onSelectionChange?: (ids: string[]) => void;
 }
 
-export function ChatInterface({ notebookId, hasReadySources }: ChatInterfaceProps) {
+export function ChatInterface({
+  notebookId,
+  hasReadySources,
+  selectedSourceIds: externalSelectedSourceIds,
+  onSelectionChange,
+}: ChatInterfaceProps) {
   const { getToken } = useAuth();
   const queryClient = useQueryClient();
 
   const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [internalSelectedSourceIds, setInternalSelectedSourceIds] = useState<string[]>([]);
+  const [isSourceDrawerOpen, setIsSourceDrawerOpen] = useState(false);
+
+  const selectedSourceIds = externalSelectedSourceIds !== undefined ? externalSelectedSourceIds : internalSelectedSourceIds;
+  const setSelectedSourceIds = onSelectionChange || setInternalSelectedSourceIds;
 
   // Live SSE Streaming State
   const [isStreaming, setIsStreaming] = useState(false);
@@ -42,6 +57,7 @@ export function ChatInterface({ notebookId, hasReadySources }: ChatInterfaceProp
 
   // Queries
   const { data: sessions, isLoading: isLoadingSessions } = useChatSessionsQuery(notebookId);
+  const { data: sources } = useSourcesQuery(notebookId);
   const { data: sessionData, isLoading: isLoadingHistory, isError, refetch } = useChatSessionQuery(
     notebookId,
     activeSessionId
@@ -171,6 +187,7 @@ export function ChatInterface({ notebookId, hasReadySources }: ChatInterfaceProp
       const askResult = await askMutation.mutateAsync({
         message: userText,
         sessionId: activeSessionId || undefined,
+        sourceIds: selectedSourceIds.length > 0 ? selectedSourceIds : undefined,
       });
 
       const currentSessionId = askResult.sessionId;
@@ -230,9 +247,23 @@ export function ChatInterface({ notebookId, hasReadySources }: ChatInterfaceProp
                 Grounded Chat Studio
               </h3>
               {hasReadySources && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 font-mono flex items-center gap-1">
-                  <ShieldCheck className="h-3 w-3 text-emerald-600" />
-                  Grounded
+                <span className={cn(
+                  "text-[10px] font-bold px-2 py-0.5 rounded-full border font-mono flex items-center gap-1 transition-all",
+                  (selectedSourceIds.length === 0 || selectedSourceIds.length === (sources?.filter(s => s.status === 'COMPLETED' || s.status === 'READY').length || 0))
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200/80"
+                    : "bg-sky-50 text-sky-800 border-sky-300 shadow-2xs"
+                )}>
+                  {(selectedSourceIds.length === 0 || selectedSourceIds.length === (sources?.filter(s => s.status === 'COMPLETED' || s.status === 'READY').length || 0)) ? (
+                    <>
+                      <ShieldCheck className="h-3 w-3 text-emerald-600" />
+                      <span>All {sources?.filter(s => s.status === 'COMPLETED' || s.status === 'READY').length || 0} Sources Active</span>
+                    </>
+                  ) : (
+                    <>
+                      <Layers className="h-3 w-3 text-sky-600" />
+                      <span>{selectedSourceIds.length} of {sources?.filter(s => s.status === 'COMPLETED' || s.status === 'READY').length || 0} Sources Focused</span>
+                    </>
+                  )}
                 </span>
               )}
             </div>
@@ -352,7 +383,68 @@ export function ChatInterface({ notebookId, hasReadySources }: ChatInterfaceProp
       </div>
 
       {/* Studio Input Area (Shrink-0) */}
-      <div className="p-4 border-t border-slate-100 bg-white shrink-0">
+      <div className="p-3 sm:p-4 border-t border-slate-100 bg-white shrink-0 space-y-2 font-sans">
+        {hasReadySources && sources && sources.length > 0 && (
+          <div>
+            {/* Smooth Upward / Downward Dropdown Trigger Header */}
+            <div className="flex items-center justify-between gap-2 px-1 mb-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span className="text-[11px] font-bold text-slate-500 font-heading">
+                  AI Source Focus:
+                </span>
+                {(selectedSourceIds.length === 0 || selectedSourceIds.length === (sources.filter(s => s.status === 'COMPLETED' || s.status === 'READY').length)) ? (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2 py-0.5 rounded-full font-mono truncate">
+                    <Sparkles className="h-2.5 w-2.5 text-emerald-600 shrink-0" />
+                    <span className="truncate">All {sources.filter(s => s.status === 'COMPLETED' || s.status === 'READY').length} Sources Active</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-sky-800 bg-sky-50 border border-sky-300 px-2 py-0.5 rounded-full font-mono truncate">
+                    <span className="truncate">{selectedSourceIds.length} of {sources.filter(s => s.status === 'COMPLETED' || s.status === 'READY').length} Selected</span>
+                  </span>
+                )}
+              </div>
+
+              {/* Upward / Downward Dropdown Button */}
+              <button
+                type="button"
+                onClick={() => setIsSourceDrawerOpen(!isSourceDrawerOpen)}
+                className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold transition-all cursor-pointer select-none font-heading shadow-2xs",
+                  isSourceDrawerOpen
+                    ? "bg-sky-100 text-sky-900 border border-sky-300 ring-2 ring-sky-400/20"
+                    : "bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 hover:border-slate-300"
+                )}
+                title={isSourceDrawerOpen ? "Close Source Selector" : "Choose Specific Sources"}
+              >
+                <Filter className="h-3 w-3 text-sky-600" />
+                <span className="text-[11px]">{isSourceDrawerOpen ? "Close Sources" : "Select Sources"}</span>
+                {isSourceDrawerOpen ? (
+                  <ChevronDown className="h-3.5 w-3.5 text-sky-600 transition-transform duration-200" />
+                ) : (
+                  <ChevronUp className="h-3.5 w-3.5 text-slate-500 transition-transform duration-200" />
+                )}
+              </button>
+            </div>
+
+            {/* Smooth Collapsible Source Drawer */}
+            <div
+              className={cn(
+                "overflow-hidden transition-all duration-300 ease-in-out origin-bottom",
+                isSourceDrawerOpen
+                  ? "max-h-96 opacity-100 mb-2 translate-y-0 scale-100"
+                  : "max-h-0 opacity-0 -translate-y-1 scale-98 pointer-events-none mb-0"
+              )}
+            >
+              <SourceSelector
+                sources={sources}
+                selectedSourceIds={selectedSourceIds}
+                onChange={setSelectedSourceIds}
+                disabled={isStreaming}
+              />
+            </div>
+          </div>
+        )}
+
         <ChatInput
           onSend={handleSendMessage}
           isStreaming={isStreaming}

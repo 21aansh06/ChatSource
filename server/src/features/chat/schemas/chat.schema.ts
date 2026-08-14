@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const queryChatSchema = z.object({
   message: z.string().min(1, 'Message cannot be empty').trim(),
   sessionId: z.string().uuid('Invalid session ID format').optional(),
+  sourceIds: z.array(z.string().uuid('Invalid source ID format')).optional(),
 });
 
 export type QueryChatInput = z.infer<typeof queryChatSchema>;

@@ -9,6 +9,7 @@ export interface ChatAnswerJobData {
   userId: string;
   userMessageId: string;
   userMessage: string;
+  sourceIds?: string[];
 }
 
 export type ChatStreamEventType = 'token' | 'citations' | 'complete' | 'error';

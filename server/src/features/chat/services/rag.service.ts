@@ -316,7 +316,8 @@ ${generatedAnswer}
     userId: string,
     notebookId: string,
     userQuery: string,
-    onToken?: (token: string) => Promise<void> | void
+    onToken?: (token: string) => Promise<void> | void,
+    sourceIds?: string[]
   ): Promise<RAGAnswerResult> {
     // Check Free Plan query limit (Max 3 successful queries)
     const user = await UsersService.getOrCreateUser(userId);
@@ -354,7 +355,8 @@ ${generatedAnswer}
         notebookId,
         expandedQueries,
         10,
-        10
+        10,
+        sourceIds
       );
 
     // Step 3 - Low confidence retrieval
@@ -431,14 +433,13 @@ ${chunk.content}`
       const systemPrompt = `
 You are ChatSource, an AI notebook assistant.
 
-Answer ONLY using the provided source passages.
-
-Rules:
-
-- Never use outside knowledge.
-- Cite every factual statement using [1], [2], etc.
-- If the answer is unavailable in the sources,
-  clearly state that.
+CRITICAL INSTRUCTIONS:
+- You must answer the user's question STRICTLY and EXCLUSIVELY using the facts contained in the provided "Source Passages" below.
+- You must NEVER use outside, general, or pre-trained knowledge under any circumstances.
+- If the provided Source Passages do NOT explicitly contain the specific facts needed to answer the question, you MUST respond EXACTLY with:
+  "I couldn't find sufficient information in the selected sources to answer your question."
+- Cite every factual statement derived from the passages using bracketed citation markers like [1], [2].
+- Never fabricate citations or facts.
 - Be concise.
 `;
 

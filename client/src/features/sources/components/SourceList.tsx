@@ -8,14 +8,26 @@ import { DeleteSourceDialog } from './DeleteSourceDialog';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Source } from '@/lib/api/types';
-import { Layers, Plus, RefreshCw, AlertCircle, Loader2, CheckCircle2, Search, FileText, Globe, AlignLeft, Filter } from 'lucide-react';
+import { Layers, Plus, RefreshCw, AlertCircle, Loader2, CheckCircle2, Search, FileText, Globe, AlignLeft, Filter, CheckSquare, Square, Check } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface SourceListProps {
   notebookId: string;
   onOpenAddDialog?: () => void;
+  selectedSourceIds?: string[];
+  onToggleSource?: (sourceId: string) => void;
+  onSelectAll?: () => void;
+  onDeselectAll?: () => void;
 }
 
-export function SourceList({ notebookId, onOpenAddDialog }: SourceListProps) {
+export function SourceList({
+  notebookId,
+  onOpenAddDialog,
+  selectedSourceIds = [],
+  onToggleSource,
+  onSelectAll,
+  onDeselectAll,
+}: SourceListProps) {
   const { data: sources, isLoading, isError, error, refetch } = useSourcesQuery(notebookId);
 
   const [isAddOpenInternal, setIsAddOpenInternal] = useState(false);
@@ -33,13 +45,17 @@ export function SourceList({ notebookId, onOpenAddDialog }: SourceListProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'PDF' | 'WEBSITE' | 'TEXT' | 'YOUTUBE'>('ALL');
 
-  const readyCount = sources?.filter(
+  const readySources = sources?.filter(
     (s) => s.status === 'COMPLETED' || s.status === 'READY'
-  ).length || 0;
+  ) || [];
+  const readyCount = readySources.length;
 
   const ingestingCount = sources?.filter(
     (s) => s.status === 'PENDING' || s.status === 'PROCESSING'
   ).length || 0;
+
+  const isAllSelected = selectedSourceIds.length === 0 || selectedSourceIds.length === readyCount;
+  const selectedCount = selectedSourceIds.length === 0 ? readyCount : selectedSourceIds.length;
 
   // Safe Filtered source list
   const filteredSources = sources?.filter((source) => {
@@ -128,6 +144,57 @@ export function SourceList({ notebookId, onOpenAddDialog }: SourceListProps) {
               </button>
             ))}
           </div>
+
+          {/* Master Chat Grounding Selection Bar */}
+          {readyCount > 0 && onToggleSource && (
+            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center justify-between gap-2 shadow-2xs animate-in fade-in-0 duration-150">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isAllSelected && onDeselectAll) {
+                      onDeselectAll();
+                    } else if (onSelectAll) {
+                      onSelectAll();
+                    }
+                  }}
+                  className="flex items-center gap-2 text-xs font-bold text-slate-800 hover:text-sky-600 transition-colors cursor-pointer font-heading"
+                >
+                  <div className={cn(
+                    "flex h-4.5 w-4.5 items-center justify-center rounded-md border transition-all",
+                    isAllSelected
+                      ? "bg-sky-500 border-sky-600 text-white shadow-2xs"
+                      : selectedSourceIds.length > 0
+                      ? "bg-sky-100 border-sky-400 text-sky-700"
+                      : "bg-white border-slate-300 text-transparent"
+                  )}>
+                    <Check className="h-3 w-3 stroke-[2.5]" />
+                  </div>
+                  <span>Grounded in Chat</span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className={cn(
+                  "text-[10px] font-bold px-2 py-0.5 rounded-full font-mono",
+                  isAllSelected
+                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200/80"
+                    : "bg-amber-50 text-amber-800 border border-amber-200/80"
+                )}>
+                  {selectedCount} of {readyCount} Active
+                </span>
+                {!isAllSelected && onSelectAll && (
+                  <button
+                    type="button"
+                    onClick={onSelectAll}
+                    className="text-[10px] font-bold text-sky-600 hover:underline cursor-pointer"
+                  >
+                    Select All
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -199,6 +266,8 @@ export function SourceList({ notebookId, onOpenAddDialog }: SourceListProps) {
                 key={source.id}
                 source={source}
                 onDelete={(src) => setDeletingSource(src)}
+                isSelected={selectedSourceIds.length === 0 || selectedSourceIds.includes(source.id)}
+                onToggleSelect={onToggleSource}
               />
             ))}
           </div>

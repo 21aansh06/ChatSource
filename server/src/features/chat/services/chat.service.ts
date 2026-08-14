@@ -10,7 +10,8 @@ export class ChatService {
     userId: string,
     notebookId: string,
     message: string,
-    sessionId?: string
+    sessionId?: string,
+    sourceIds?: string[]
   ): Promise<{ session: any; userMessage: any; streamUrl: string }> {
     // 1. Verify Notebook ownership for multi-tenant isolation
     const notebook = await prisma.notebook.findFirst({
@@ -19,6 +20,22 @@ export class ChatService {
 
     if (!notebook) {
       throw new Error('Notebook not found or unauthorized access');
+    }
+
+    // 1b. If specific sourceIds are requested, verify all belong to this notebook and user
+    if (sourceIds && sourceIds.length > 0) {
+      const validSources = await prisma.source.findMany({
+        where: {
+          id: { in: sourceIds },
+          notebookId,
+          userId,
+        },
+        select: { id: true },
+      });
+
+      if (validSources.length !== sourceIds.length) {
+        throw new Error('One or more selected sources are invalid or unauthorized');
+      }
     }
 
     // Check Free Plan AI query limit (Max 3 successful queries)
@@ -56,7 +73,7 @@ export class ChatService {
       },
     });
 
-    // 4. Enqueue BullMQ background job (Returns immediately without blocking HTTP response)
+    // 4. Enqueue BullMQ background job 
     await chatAnswerQueue.add(
       'generate-answer',
       {
@@ -65,6 +82,7 @@ export class ChatService {
         userId,
         userMessageId: userMsgRecord.id,
         userMessage: message,
+        sourceIds: sourceIds && sourceIds.length > 0 ? sourceIds : undefined,
       },
       { jobId: `chat-${userMsgRecord.id}` } // Idempotent job ID
     );

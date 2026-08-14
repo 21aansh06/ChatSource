@@ -79,6 +79,7 @@ coverage/
 # =========================
 .next/
 .turbo/
+CHAT_ARCHITECTURE.md
 
 # =========================
 # Misc

@@ -132,6 +132,7 @@ export interface ChatSession {
 export interface AskQuestionInput {
   message: string;
   sessionId?: string;
+  sourceIds?: string[];
 }
 
 export interface AskQuestionResponse {

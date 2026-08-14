@@ -27,7 +27,8 @@ export class ChatController {
         userId,
         notebookId,
         validation.data.message,
-        validation.data.sessionId
+        validation.data.sessionId,
+        validation.data.sourceIds
       );
 
       res.status(202).json({
@@ -38,6 +39,10 @@ export class ChatController {
         streamUrl: result.streamUrl,
       });
     } catch (err: any) {
+      if (err?.message?.includes('invalid or unauthorized')) {
+        res.status(400).json({ error: err.message });
+        return;
+      }
       if (err?.message?.includes('not found') || err?.message?.includes('unauthorized')) {
         res.status(404).json({ error: err.message });
         return;

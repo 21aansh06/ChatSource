@@ -3,15 +3,17 @@
 import React from 'react';
 import { Source } from '@/lib/api/types';
 import { SourceStatusBadge } from './SourceStatusBadge';
-import { FileText, Globe, AlignLeft, Trash2, ExternalLink, Info, Video } from 'lucide-react';
+import { FileText, Globe, AlignLeft, Trash2, ExternalLink, Info, Video, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SourceCardProps {
   source: Source;
   onDelete: (source: Source) => void;
+  isSelected?: boolean;
+  onToggleSelect?: (sourceId: string) => void;
 }
 
-export function SourceCard({ source, onDelete }: SourceCardProps) {
+export function SourceCard({ source, onDelete, isSelected = true, onToggleSelect }: SourceCardProps) {
   const latestJob = source.ingestionJobs?.[0];
   const isReady = source.status === 'COMPLETED' || source.status === 'READY';
   const isFailed = source.status === 'FAILED' || source.status === 'NEEDS_REVIEW';
@@ -30,16 +32,36 @@ export function SourceCard({ source, onDelete }: SourceCardProps) {
   return (
     <div
       className={cn(
-        "group relative flex flex-col justify-between rounded-xl border p-3.5 transition-all duration-150 bg-white hover:shadow-2xs font-sans",
-        isReady && "border-slate-200/90 hover:border-sky-300",
+        "group relative flex flex-col justify-between rounded-xl border p-3.5 transition-all duration-150 font-sans",
+        isReady && isSelected && "border-slate-200/90 hover:border-sky-300 bg-white hover:shadow-2xs",
+        isReady && !isSelected && "border-slate-200/60 bg-slate-50/40 opacity-70 hover:opacity-100 hover:border-slate-300",
         isFailed && "border-rose-200 bg-rose-50/30",
         isPending && "border-amber-200 bg-amber-50/30"
       )}
     >
       <div className="space-y-2">
-        {/* Top Header Row with Icon, Title, and Delete Button */}
+        {/* Top Header Row with Checkbox, Icon, Title, and Delete Button */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
+            {isReady && onToggleSelect && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleSelect(source.id);
+                }}
+                className={cn(
+                  "flex h-5 w-5 items-center justify-center rounded-md border transition-all cursor-pointer shrink-0",
+                  isSelected
+                    ? "bg-sky-500 border-sky-600 text-white shadow-2xs"
+                    : "bg-white border-slate-300 text-transparent hover:border-sky-400"
+                )}
+                title={isSelected ? "Active in AI chat (click to exclude)" : "Excluded from AI chat (click to include)"}
+              >
+                <Check className={cn("h-3.5 w-3.5 stroke-[2.5]", isSelected ? "opacity-100" : "opacity-0")} />
+              </button>
+            )}
+
             <div className="flex h-8.5 w-8.5 items-center justify-center rounded-xl bg-slate-100 border border-slate-200 text-slate-700 shrink-0">
               {source.type === 'PDF' && <FileText className="h-4 w-4 text-sky-600" />}
               {source.type === 'WEBSITE' && <Globe className="h-4 w-4 text-emerald-600" />}
@@ -48,9 +70,19 @@ export function SourceCard({ source, onDelete }: SourceCardProps) {
             </div>
 
             <div className="min-w-0">
-              <span className="text-[10px] font-extrabold tracking-wider text-slate-400 uppercase font-mono block">
-                {source.type}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-extrabold tracking-wider text-slate-400 uppercase font-mono block">
+                  {source.type}
+                </span>
+                {isReady && (
+                  <span className={cn(
+                    "text-[9px] font-bold px-1.5 py-0.2 rounded font-mono",
+                    isSelected ? "text-sky-700 bg-sky-50 border border-sky-200/60" : "text-slate-400 bg-slate-100"
+                  )}>
+                    {isSelected ? "Active" : "Excluded"}
+                  </span>
+                )}
+              </div>
               <h4 className="font-bold text-xs sm:text-sm text-slate-900 line-clamp-1 group-hover:text-sky-600 transition-colors font-heading">
                 {source.title}
               </h4>

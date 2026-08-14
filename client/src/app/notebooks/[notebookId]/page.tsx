@@ -32,13 +32,40 @@ export default function NotebookDetailPage({ params }: NotebookDetailPageProps) 
 
   // Mobile View Tab Switcher State (Sources vs Chat)
   const [mobileTab, setMobileTab] = useState<'sources' | 'chat'>('chat');
+  const [selectedSourceIds, setSelectedSourceIds] = useState<string[]>([]);
 
-  const readySourcesCount = sources?.filter(
+  const readySources = sources?.filter(
     (s) => s.status === 'COMPLETED' || s.status === 'READY'
-  ).length || 0;
-
+  ) || [];
+  const readySourcesCount = readySources.length;
   const totalSourcesCount = sources?.length || 0;
   const hasReadySources = readySourcesCount > 0;
+
+  const handleToggleSource = (sourceId: string) => {
+    if (selectedSourceIds.length === 0) {
+      setSelectedSourceIds([sourceId]);
+      return;
+    }
+    if (selectedSourceIds.includes(sourceId)) {
+      const next = selectedSourceIds.filter((id) => id !== sourceId);
+      setSelectedSourceIds(next);
+    } else {
+      const next = [...selectedSourceIds, sourceId];
+      if (next.length === readySourcesCount) {
+        setSelectedSourceIds([]);
+      } else {
+        setSelectedSourceIds(next);
+      }
+    }
+  };
+
+  const handleSelectAllSources = () => {
+    setSelectedSourceIds([]);
+  };
+
+  const handleDeselectAllSources = () => {
+    setSelectedSourceIds([]);
+  };
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden w-full bg-slate-50/50 font-sans">
@@ -184,12 +211,21 @@ export default function NotebookDetailPage({ params }: NotebookDetailPageProps) 
               <SourceList
                 notebookId={notebookId}
                 onOpenAddDialog={() => setIsAddSourceOpen(true)}
+                selectedSourceIds={selectedSourceIds}
+                onToggleSource={handleToggleSource}
+                onSelectAll={handleSelectAllSources}
+                onDeselectAll={handleDeselectAllSources}
               />
             </div>
 
             {/* Right Column: Grounded Chat Studio Canvas */}
             <div className={`lg:col-span-8 h-full overflow-hidden ${mobileTab === 'chat' ? 'block' : 'hidden lg:block'}`}>
-              <ChatInterface notebookId={notebookId} hasReadySources={hasReadySources} />
+              <ChatInterface
+                notebookId={notebookId}
+                hasReadySources={hasReadySources}
+                selectedSourceIds={selectedSourceIds}
+                onSelectionChange={setSelectedSourceIds}
+              />
             </div>
           </div>
         )}

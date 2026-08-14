@@ -3,7 +3,6 @@ import { qdrantClient } from '../../../infra/qdrant.js';
 import { EmbeddingService } from '../embedding/embedding.service.js';
 
 const COLLECTION_NAME = 'notebook_chunks';
-// Fixed namespace UUID for deterministic Qdrant point IDs
 const NAMESPACE_UUID = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
 
 export interface VectorChunkPoint {
@@ -34,18 +33,21 @@ export class VectorStoreService {
             distance: 'Cosine',
           },
         });
-
-        // Create payload index for fast multi-tenant filtering by notebookId and userId
-        await qdrantClient.createPayloadIndex(COLLECTION_NAME, {
-          field_name: 'notebookId',
-          field_schema: 'keyword',
-        });
-        await qdrantClient.createPayloadIndex(COLLECTION_NAME, {
-          field_name: 'userId',
-          field_schema: 'keyword',
-        });
-        console.log(`[VectorStoreService] Qdrant collection "${COLLECTION_NAME}" & tenant payload indexes initialized.`);
       }
+
+      // Ensure payload indexes exist for fast multi-tenant & source-level filtering
+      const fieldsToIndex = ['notebookId', 'userId', 'sourceId'];
+      for (const field_name of fieldsToIndex) {
+        try {
+          await qdrantClient.createPayloadIndex(COLLECTION_NAME, {
+            field_name,
+            field_schema: 'keyword',
+          });
+        } catch {
+          // index already exists in Qdrant
+        }
+      }
+      console.log(`[VectorStoreService] Qdrant collection "${COLLECTION_NAME}" & tenant/source payload indexes verified.`);
     } catch (err: any) {
       console.error(`[VectorStoreService] Error initializing Qdrant collection:`, err?.message || err);
     }

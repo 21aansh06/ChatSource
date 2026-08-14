@@ -15,8 +15,8 @@ import { RAGService } from '../services/rag.service.js';
 export const chatAnswerWorker = new Worker<ChatAnswerJobData>(
   CHAT_ANSWER_QUEUE_NAME,
   async (job: Job<ChatAnswerJobData>) => {
-    const { sessionId, notebookId, userId, userMessage } = job.data;
-    console.log(`🤖 [ChatWorker] Starting async answer generation for session: ${sessionId}`);
+    const { sessionId, notebookId, userId, userMessage, sourceIds } = job.data;
+    console.log(`🤖 [ChatWorker] Starting async answer generation for session: ${sessionId}${sourceIds?.length ? ` (filtered to ${sourceIds.length} sources)` : ''}`);
 
     try {
       // Execute RAG pipeline with real-time token streaming callback to Redis Pub/Sub
@@ -29,7 +29,8 @@ export const chatAnswerWorker = new Worker<ChatAnswerJobData>(
             type: 'token',
             payload: { token },
           });
-        }
+        },
+        sourceIds
       );
 
       // Publish citations event before completing
