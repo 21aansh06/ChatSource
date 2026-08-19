@@ -3,7 +3,7 @@
 import React from 'react';
 import { ChatMessage, CitationItem } from '@/lib/api/types';
 import { CitationList } from './CitationList';
-import { Bot, User, AlertTriangle, AlertCircle, Sparkles } from 'lucide-react';
+import { Bot, User, AlertTriangle, AlertCircle, Sparkles, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ChatMessageItemProps {
@@ -36,6 +36,19 @@ export const ChatMessageItem = React.memo(function ChatMessageItem({
     lowConfidenceProp ||
     content.includes("couldn't find sufficient information") ||
     content.includes("could not find sufficient information");
+
+  // Check if content or stream error indicates a limit reached
+  const isContentLimitReached =
+    content.toLowerCase().includes('limit reached') ||
+    content.toLowerCase().includes('plan limit') ||
+    content.toLowerCase().includes('upgrade to a paid plan');
+
+  const isStreamErrorLimitReached = Boolean(
+    streamError &&
+      (streamError.toLowerCase().includes('limit') ||
+        streamError.toLowerCase().includes('429') ||
+        streamError.toLowerCase().includes('plan'))
+  );
 
   return (
     <div
@@ -78,14 +91,40 @@ export const ChatMessageItem = React.memo(function ChatMessageItem({
           )}
         </div>
 
+        {/* Contact Link when Content indicates Limit reached */}
+        {!isUser && isContentLimitReached && (
+          <div className="pt-1.5">
+            <a
+              href="mailto:axnsh@gmail.com?subject=ChatSource%20Plan%20Upgrade%20-%20Query%20Limit%20Reached"
+              className="inline-flex items-center gap-1 text-xs font-bold text-sky-600 hover:text-sky-700 hover:underline cursor-pointer"
+            >
+              <span>Contact</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </a>
+          </div>
+        )}
+
         {/* Stream Error Alert Box */}
         {streamError && (
-          <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700 flex items-start gap-2.5">
-            <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-rose-600" />
-            <div>
-              <p className="font-bold font-heading">Generation Error</p>
-              <p className="text-[11px] text-rose-600 mt-0.5">{streamError}</p>
+          <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700 space-y-2">
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-rose-600" />
+              <div>
+                <p className="font-bold font-heading">Generation Error</p>
+                <p className="text-[11px] text-rose-600 mt-0.5">{streamError}</p>
+              </div>
             </div>
+            {isStreamErrorLimitReached && (
+              <div className="pl-6.5">
+                <a
+                  href="mailto:support@chatsource.com?subject=ChatSource%20Plan%20Upgrade%20-%20Query%20Limit%20Reached"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-sky-700 hover:text-sky-800 hover:underline cursor-pointer"
+                >
+                  <span>Contact</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </a>
+              </div>
+            )}
           </div>
         )}
 

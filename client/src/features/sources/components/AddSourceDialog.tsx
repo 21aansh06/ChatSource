@@ -9,8 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useCreateSourceMutation } from '../api/use-sources';
+import { useCurrentUserQuery } from '@/features/users/api/use-user';
 import { SourceType } from '@/lib/api/types';
-import { FileText, Globe, AlignLeft, Upload, Loader2, Plus, CheckCircle2, Video } from 'lucide-react';
+import { FileText, Globe, AlignLeft, Upload, Loader2, Plus, CheckCircle2, Video, AlertCircle, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Schemas for the 4 tabs
@@ -43,6 +44,10 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
   const [activeTab, setActiveTab] = useState<SourceType>('PDF');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+
+  const { data: dbUser } = useCurrentUserQuery();
+  const isPaid = dbUser?.plan === 'PAID';
+  const isSourceLimitReached = !isPaid && (dbUser?.usage?.sourcesAddedCount ?? 0) >= 2;
 
   const createMutation = useCreateSourceMutation(notebookId);
 
@@ -234,10 +239,36 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
           </button>
         </div>
 
+        {/* Source Limit Pre-check Warning Banner */}
+        {isSourceLimitReached && (
+          <div className="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-800 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+              <span>Free plan limit reached (2/2 sources added). Upgrade to Paid for unlimited sources.</span>
+            </div>
+            <a
+              href="mailto:axnsh.dev@gmail.com?subject=ChatSource%20Plan%20Upgrade%20-%20Source%20Limit%20Reached"
+              className="inline-flex items-center gap-1 text-xs font-bold text-sky-700 hover:text-sky-800 hover:underline shrink-0 bg-white px-2.5 py-1 rounded-lg border border-amber-200 shadow-2xs cursor-pointer"
+            >
+              <span>Contact</span>
+              <ArrowRight className="h-3 w-3" />
+            </a>
+          </div>
+        )}
+
         {/* Global Mutation Error Display */}
         {createMutation.isError && (
-          <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700 font-semibold">
-            {createMutation.error?.message || 'Failed to submit source. Please check backend connection.'}
+          <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-700 font-semibold flex items-center justify-between gap-2">
+            <span>{createMutation.error?.message || 'Failed to submit source. Please check backend connection.'}</span>
+            {(createMutation.error?.message?.toLowerCase().includes('limit') || isSourceLimitReached) && (
+              <a
+                href="mailto:axnsh.dev@gmail.com?subject=ChatSource%20Plan%20Upgrade%20-%20Source%20Limit%20Reached"
+                className="inline-flex items-center gap-1 text-xs font-bold text-sky-700 hover:text-sky-800 hover:underline shrink-0 bg-white px-2.5 py-1 rounded-lg border border-rose-200 shadow-2xs cursor-pointer"
+              >
+                <span>Contact</span>
+                <ArrowRight className="h-3 w-3" />
+              </a>
+            )}
           </div>
         )}
 

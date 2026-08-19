@@ -20,7 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { MessageSquare, Sparkles, AlertCircle, RefreshCw, Plus, ShieldCheck, ArrowRight, Lightbulb, Compass, Layers, ChevronUp, ChevronDown, Filter } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { USER_QUERY_KEY } from '@/features/users/api/use-user';
+import { useCurrentUserQuery, USER_QUERY_KEY } from '@/features/users/api/use-user';
 
 interface ChatInterfaceProps {
   notebookId: string;
@@ -58,6 +58,10 @@ export function ChatInterface({
   // Queries
   const { data: sessions, isLoading: isLoadingSessions } = useChatSessionsQuery(notebookId);
   const { data: sources } = useSourcesQuery(notebookId);
+  const { data: dbUser } = useCurrentUserQuery();
+  const isPaid = dbUser?.plan === 'PAID';
+  const isQueryLimitReached = !isPaid && (dbUser?.usage?.successfulQueriesCount ?? 0) >= 3;
+
   const { data: sessionData, isLoading: isLoadingHistory, isError, refetch } = useChatSessionQuery(
     notebookId,
     activeSessionId
@@ -442,6 +446,22 @@ export function ChatInterface({
                 disabled={isStreaming}
               />
             </div>
+          </div>
+        )}
+
+        {isQueryLimitReached && (
+          <div className="rounded-xl bg-amber-50 border border-amber-200 p-2.5 text-xs text-amber-800 flex items-center justify-between gap-2 shadow-2xs">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+              <span>Free plan limit reached (3/3 AI queries completed). Upgrade for unlimited queries.</span>
+            </div>
+            <a
+              href="mailto:axnsh.dev@gmail.com?subject=ChatSource%20Plan%20Upgrade%20-%20Query%20Limit%20Reached"
+              className="inline-flex items-center gap-0.5 text-xs font-bold text-sky-700 hover:text-sky-800 hover:underline shrink-0 bg-white px-2 py-0.5 rounded-md border border-amber-200 shadow-2xs cursor-pointer"
+            >
+              <span>Contact</span>
+              <ArrowRight className="h-3 w-3" />
+            </a>
           </div>
         )}
 

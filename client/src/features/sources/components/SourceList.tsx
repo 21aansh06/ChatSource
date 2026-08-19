@@ -2,13 +2,14 @@
 
 import React, { useState } from 'react';
 import { useSourcesQuery } from '../api/use-sources';
+import { useCurrentUserQuery } from '@/features/users/api/use-user';
 import { SourceCard } from './SourceCard';
 import { AddSourceDialog } from './AddSourceDialog';
 import { DeleteSourceDialog } from './DeleteSourceDialog';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Source } from '@/lib/api/types';
-import { Layers, Plus, RefreshCw, AlertCircle, Loader2, CheckCircle2, Search, FileText, Globe, AlignLeft, Filter, CheckSquare, Square, Check } from 'lucide-react';
+import { Layers, Plus, RefreshCw, AlertCircle, Loader2, CheckCircle2, Search, FileText, Globe, AlignLeft, Filter, CheckSquare, Square, Check, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SourceListProps {
@@ -29,6 +30,9 @@ export function SourceList({
   onDeselectAll,
 }: SourceListProps) {
   const { data: sources, isLoading, isError, error, refetch } = useSourcesQuery(notebookId);
+  const { data: dbUser } = useCurrentUserQuery();
+  const isPaid = dbUser?.plan === 'PAID';
+  const isSourceLimitReached = !isPaid && (dbUser?.usage?.sourcesAddedCount ?? 0) >= 2;
 
   const [isAddOpenInternal, setIsAddOpenInternal] = useState(false);
   const [deletingSource, setDeletingSource] = useState<Source | null>(null);
@@ -98,6 +102,23 @@ export function SourceList({
           <span>Add</span>
         </Button>
       </div>
+
+      {/* Source Limit Indicator Banner */}
+      {isSourceLimitReached && (
+        <div className="mt-3 flex items-center justify-between rounded-xl bg-amber-50 p-2.5 border border-amber-200 text-xs font-semibold text-amber-800 shrink-0">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0 text-amber-600" />
+            <span>Source limit reached (2/2 sources used).</span>
+          </div>
+          <a
+            href="mailto:axnsh.dev@gmail.com?subject=ChatSource%20Plan%20Upgrade%20-%20Source%20Limit%20Reached"
+            className="inline-flex items-center gap-0.5 text-xs font-bold text-sky-700 hover:text-sky-800 hover:underline shrink-0 bg-white px-2 py-0.5 rounded-md border border-amber-200 shadow-2xs cursor-pointer"
+          >
+            <span>Contact</span>
+            <ArrowRight className="h-3 w-3" />
+          </a>
+        </div>
+      )}
 
       {/* Ingestion Processing Indicator Banner */}
       {ingestingCount > 0 && (
