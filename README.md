@@ -29,6 +29,57 @@ With ChatSource, you can:
 - receive streaming answers with source citations
 - review the grounding trail for each answer
 
+# Tech Stack
+
+## Frontend
+- Next.js
+- React
+- TypeScript
+- Tailwind CSS
+- TanStack React Query
+- Clerk (auth)
+- React Hook Form
+- Zod
+- Lucide React (icons)
+
+## Backend
+- Node.js
+- Express.js
+- TypeScript
+- Clerk (JWT middleware)
+- Multer (file uploads)
+- Zod (validation)
+
+## Databases & Storage
+- PostgreSQL (Neon)
+- Prisma (ORM)
+- Qdrant Cloud (vector DB)
+- Supabase Storage
+  
+## Queues & Real-Time
+- BullMQ
+- Redis (Upstash)
+- Server-Sent Events (SSE)
+
+## AI / RAG
+- OpenAI (gpt-4o-mini)
+- Google Gemini (alternate LLM)
+- OpenAI text-embedding-3-small
+
+## Document Parsing & Scraping
+- pdf-parse / pdfjs-dist (PDF parsing)
+- napi-rs/canvas (PDF rasterization)
+- Tesseract.js (OCR)
+- youtube-transcript (YouTube transcripts)
+- Firecrawl / Cheerio (web scraping)
+- SSRF protection (private IP/loopback blocking)
+
+## Supported Sources
+- PDF
+- Website
+- YouTube
+- Raw Text
+
 ## How it works
 
 The system follows a simple flow:
