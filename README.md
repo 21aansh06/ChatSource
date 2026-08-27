@@ -104,21 +104,6 @@ The main pieces are:
 4. The database stores notebook, source, chunk, and chat history data.
 5. Vector storage is used to retrieve the most relevant content for a question.
 
-## Tech stack
-
-- Next.js
-- React
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- Clerk for authentication
-- Express
-- Prisma with PostgreSQL
-- Redis and BullMQ for async jobs
-- Qdrant for vector search
-- Supabase for storage
-- OpenAI and Gemini for generation and embeddings
-
 ## Project structure
 
 ```text
@@ -272,11 +257,9 @@ If you are exploring the project for the first time, this is the best path:
 
 This project has a strong base for a private research assistant. Future improvements could include:
 
-- better source preview and extraction quality
-- richer citation UI
+- adding tools such as summary and quiz
 - more ingestion formats
 - stronger ranking and retrieval tuning
-- improved admin and analytics views
 
 ## License
 

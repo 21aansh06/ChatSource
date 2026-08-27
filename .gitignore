@@ -79,7 +79,6 @@ coverage/
 # =========================
 .next/
 .turbo/
-CHAT_ARCHITECTURE.md
 
 # =========================
 # Misc
@@ -89,3 +88,6 @@ CHAT_ARCHITECTURE.md
 *.pid.lock
 
 eng.traineddata
+CHAT_ARCHITECTURE.md
+tech_stack.md
+product_approach.md

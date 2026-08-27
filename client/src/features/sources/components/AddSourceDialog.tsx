@@ -453,7 +453,7 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
 
         {/* TAB 4: YOUTUBE VIDEO SUBMISSION */}
         {activeTab === 'YOUTUBE' && (
-          <div>Still in development, not ready for production yet.</div>
+          <div>Still in development, not ready for production yet. We will notify you when available.</div>
           // <form onSubmit={youtubeForm.handleSubmit(onSubmitYoutube)} className="space-y-4">
           //   <div className="space-y-1.5">
           //     <label className="text-xs font-bold text-slate-900 font-heading">YouTube Video URL</label>
