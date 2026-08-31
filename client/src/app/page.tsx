@@ -219,11 +219,10 @@ export default function HomePage() {
             <div className="mt-6 inline-flex max-w-full items-center justify-center gap-1 rounded-xl bg-slate-100 p-1 border border-slate-200 shadow-2xs font-sans">
               <button
                 onClick={() => setActiveDemoTab('youtube')}
-                className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
-                  activeDemoTab === 'youtube'
+                className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${activeDemoTab === 'youtube'
                     ? 'bg-white text-slate-900 shadow-2xs border border-slate-200'
                     : 'text-slate-600 hover:text-slate-900'
-                }`}
+                  }`}
               >
                 <Video className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-rose-600 shrink-0" />
                 <span>
@@ -234,11 +233,10 @@ export default function HomePage() {
 
               <button
                 onClick={() => setActiveDemoTab('pdf')}
-                className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
-                  activeDemoTab === 'pdf'
+                className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${activeDemoTab === 'pdf'
                     ? 'bg-white text-slate-900 shadow-2xs border border-slate-200'
                     : 'text-slate-600 hover:text-slate-900'
-                }`}
+                  }`}
               >
                 <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-sky-600 shrink-0" />
                 <span>
@@ -249,11 +247,10 @@ export default function HomePage() {
 
               <button
                 onClick={() => setActiveDemoTab('website')}
-                className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${
-                  activeDemoTab === 'website'
+                className={`flex items-center gap-1.5 rounded-lg px-2.5 sm:px-4 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold transition-all cursor-pointer ${activeDemoTab === 'website'
                     ? 'bg-white text-slate-900 shadow-2xs border border-slate-200'
                     : 'text-slate-600 hover:text-slate-900'
-                }`}
+                  }`}
               >
                 <Globe className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-600 shrink-0" />
                 <span>
@@ -550,9 +547,8 @@ export default function HomePage() {
                 >
                   <span className="pr-2">{faq.q}</span>
                   <ChevronDown
-                    className={`h-4 w-4 text-slate-500 shrink-0 transition-transform ${
-                      activeFaq === idx ? 'rotate-180 text-sky-600' : ''
-                    }`}
+                    className={`h-4 w-4 text-slate-500 shrink-0 transition-transform ${activeFaq === idx ? 'rotate-180 text-sky-600' : ''
+                      }`}
                   />
                 </button>
 
