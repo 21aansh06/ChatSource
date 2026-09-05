@@ -77,7 +77,8 @@ With ChatSource, you can:
 ## Supported Sources
 - PDF
 - Website
-- YouTube
+- YouTube Video
+- Markdown(.md)
 - Raw Text
 
 ## How it works

@@ -451,7 +451,7 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
                   type="button"
                   onClick={() => { setMarkdownInputMode('upload'); setFileError(null); }}
                   className={cn(
-                    "px-2 py-0.5 text-[11px] font-bold rounded-md transition-all",
+                    "cursor-pointer px-2 py-0.5 text-[11px] font-bold rounded-md transition-all",
                     markdownInputMode === 'upload' ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-800"
                   )}
                 >
@@ -461,7 +461,7 @@ export function AddSourceDialog({ notebookId, isOpen, onClose }: AddSourceDialog
                   type="button"
                   onClick={() => { setMarkdownInputMode('paste'); setSelectedFile(null); setFileError(null); }}
                   className={cn(
-                    "px-2 py-0.5 text-[11px] font-bold rounded-md transition-all",
+                    "cursor-pointer px-2 py-0.5 text-[11px] font-bold rounded-md transition-all",
                     markdownInputMode === 'paste' ? "bg-white text-slate-900 shadow-2xs" : "text-slate-500 hover:text-slate-800"
                   )}
                 >
