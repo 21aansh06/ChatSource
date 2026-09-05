@@ -41,7 +41,7 @@ export interface UpdateNotebookInput {
   description?: string;
 }
 
-export type SourceType = 'PDF' | 'WEBSITE' | 'TEXT' | 'YOUTUBE';
+export type SourceType = 'PDF' | 'WEBSITE' | 'TEXT' | 'YOUTUBE' | 'MARKDOWN';
 
 export type IngestionStatus =
   | 'PENDING'
@@ -88,6 +88,8 @@ export interface CreateSourceInput {
 export interface LocationMetadata {
   pageNumber?: number;
   header?: string;
+  headerLevel?: number;
+  sectionBreadcrumbs?: string[];
   url?: string;
   anchorId?: string;
   sectionTitle?: string;
@@ -95,6 +97,9 @@ export interface LocationMetadata {
   lineEnd?: number;
   charOffsetStart?: number;
   charOffsetEnd?: number;
+  hasCodeBlock?: boolean;
+  hasTable?: boolean;
+  codeLanguages?: string[];
   [key: string]: unknown;
 }
 

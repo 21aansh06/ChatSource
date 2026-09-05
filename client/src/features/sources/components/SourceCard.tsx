@@ -3,7 +3,7 @@
 import React from 'react';
 import { Source } from '@/lib/api/types';
 import { SourceStatusBadge } from './SourceStatusBadge';
-import { FileText, Globe, AlignLeft, Trash2, ExternalLink, Info, Video, Check } from 'lucide-react';
+import { FileText, Globe, AlignLeft, Trash2, ExternalLink, Info, Video, Check, FileCode } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SourceCardProps {
@@ -26,7 +26,9 @@ export function SourceCard({ source, onDelete, isSelected = true, onToggleSelect
   });
 
   const formattedSize = source.fileSize
-    ? `${(source.fileSize / (1024 * 1024)).toFixed(2)} MB`
+    ? source.fileSize > 1024 * 1024
+      ? `${(source.fileSize / (1024 * 1024)).toFixed(2)} MB`
+      : `${(source.fileSize / 1024).toFixed(1)} KB`
     : null;
 
   return (
@@ -64,6 +66,7 @@ export function SourceCard({ source, onDelete, isSelected = true, onToggleSelect
 
             <div className="flex h-8.5 w-8.5 items-center justify-center rounded-xl bg-slate-100 border border-slate-200 text-slate-700 shrink-0">
               {source.type === 'PDF' && <FileText className="h-4 w-4 text-sky-600" />}
+              {source.type === 'MARKDOWN' && <FileCode className="h-4 w-4 text-violet-600" />}
               {source.type === 'WEBSITE' && <Globe className="h-4 w-4 text-emerald-600" />}
               {source.type === 'TEXT' && <AlignLeft className="h-4 w-4 text-indigo-600" />}
               {source.type === 'YOUTUBE' && <Video className="h-4 w-4 text-rose-600" />}

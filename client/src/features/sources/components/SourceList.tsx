@@ -47,7 +47,7 @@ export function SourceList({
 
   // Presentational Filter & Search State
   const [searchQuery, setSearchQuery] = useState('');
-  const [typeFilter, setTypeFilter] = useState<'ALL' | 'PDF' | 'WEBSITE' | 'TEXT' | 'YOUTUBE'>('ALL');
+  const [typeFilter, setTypeFilter] = useState<'ALL' | 'PDF' | 'MARKDOWN' | 'WEBSITE' | 'TEXT' | 'YOUTUBE'>('ALL');
 
   const readySources = sources?.filter(
     (s) => s.status === 'COMPLETED' || s.status === 'READY'
@@ -151,7 +151,7 @@ export function SourceList({
             <span className="text-slate-400 font-bold mr-0.5 flex items-center gap-1">
               <Filter className="h-3 w-3" />
             </span>
-            {(['ALL', 'PDF', 'WEBSITE', 'TEXT', 'YOUTUBE'] as const).map((type) => (
+            {(['ALL', 'PDF', 'MARKDOWN', 'WEBSITE', 'TEXT', 'YOUTUBE'] as const).map((type) => (
               <button
                 key={type}
                 onClick={() => setTypeFilter(type)}

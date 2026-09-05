@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { CitationItem } from '@/lib/api/types';
 import { CitationInspectorModal } from './CitationInspectorModal';
-import { FileText, Globe, AlignLeft, ExternalLink, Bookmark, Video } from 'lucide-react';
+import { FileText, Globe, AlignLeft, ExternalLink, Bookmark, Video, FileCode } from 'lucide-react';
 
 interface CitationListProps {
   citations: CitationItem[];
@@ -24,6 +24,7 @@ export function CitationList({ citations }: CitationListProps) {
       <div className="flex flex-wrap gap-2">
         {citations.map((c, idx) => {
           const isPdf = c.sourceType === 'PDF';
+          const isMarkdown = c.sourceType === 'MARKDOWN';
           const isWebsite = c.sourceType === 'WEBSITE';
           const isText = c.sourceType === 'TEXT';
           const isYoutube = c.sourceType === 'YOUTUBE';
@@ -34,6 +35,13 @@ export function CitationList({ citations }: CitationListProps) {
               ? String(loc.pageNumber)
               : loc.page !== undefined
               ? String(loc.page)
+              : null;
+
+          const markdownBreadcrumb =
+            Array.isArray(loc.sectionBreadcrumbs) && loc.sectionBreadcrumbs.length > 0
+              ? loc.sectionBreadcrumbs.join(' › ')
+              : typeof loc.header === 'string'
+              ? loc.header
               : null;
 
           const targetUrl = typeof loc.url === 'string' ? loc.url : null;
@@ -61,6 +69,7 @@ export function CitationList({ citations }: CitationListProps) {
 
               {/* Source Icon */}
               {isPdf && <FileText className="h-3.5 w-3.5 shrink-0 text-sky-600" />}
+              {isMarkdown && <FileCode className="h-3.5 w-3.5 shrink-0 text-violet-600" />}
               {isWebsite && <Globe className="h-3.5 w-3.5 shrink-0 text-emerald-600" />}
               {isText && <AlignLeft className="h-3.5 w-3.5 shrink-0 text-indigo-600" />}
               {isYoutube && <Video className="h-3.5 w-3.5 shrink-0 text-rose-600" />}
@@ -68,13 +77,18 @@ export function CitationList({ citations }: CitationListProps) {
               {/* Source Title & Location */}
               <button
                 onClick={() => setSelectedCitation(c)}
-                className="font-semibold hover:underline text-left truncate max-w-[180px] focus-visible:outline-none cursor-pointer text-slate-800 group-hover:text-sky-700"
+                className="font-semibold hover:underline text-left truncate max-w-[200px] focus-visible:outline-none cursor-pointer text-slate-800 group-hover:text-sky-700"
                 title={`Click to inspect citation snippet from ${c.sourceTitle}`}
               >
                 <span className="truncate">{c.sourceTitle}</span>
                 {isPdf && pdfPage !== null && (
                   <span className="ml-1 font-mono text-[10px] text-slate-500 font-bold">
                     (p. {pdfPage})
+                  </span>
+                )}
+                {isMarkdown && markdownBreadcrumb && (
+                  <span className="ml-1 font-mono text-[10px] text-violet-700 font-bold bg-violet-100/60 px-1 py-0.2 rounded">
+                    ({markdownBreadcrumb})
                   </span>
                 )}
                 {isText && lineRange && (

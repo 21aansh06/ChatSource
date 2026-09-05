@@ -7,6 +7,7 @@ import { PDFIngestionHandler } from '../handlers/pdf.handler.js';
 import { WebsiteIngestionHandler } from '../handlers/website.handler.js';
 import { TextIngestionHandler } from '../handlers/text.handler.js';
 import { YouTubeIngestionHandler } from '../handlers/youtube.handler.js';
+import { MarkdownIngestionHandler } from '../handlers/markdown.handler.js';
 import {
   INGESTION_PARSE_QUEUE_NAME,
   INGESTION_EMBED_QUEUE_NAME,
@@ -25,6 +26,7 @@ export function registerAllIngestionHandlers(): void {
   IngestionRegistry.register(new WebsiteIngestionHandler());
   IngestionRegistry.register(new TextIngestionHandler());
   IngestionRegistry.register(new YouTubeIngestionHandler());
+  IngestionRegistry.register(new MarkdownIngestionHandler());
   console.log('✅ [IngestionWorkers] All source handlers successfully registered in IngestionRegistry.');
 }
 /**

@@ -14,10 +14,18 @@ export const upload = multer({
     file: Express.Multer.File,
     cb: FileFilterCallback
   ) => {
-    if (file.mimetype === "application/pdf") {
+    const isPdf = file.mimetype === "application/pdf" || file.originalname.toLowerCase().endsWith(".pdf");
+    const isMd =
+      file.mimetype === "text/markdown" ||
+      file.mimetype === "text/plain" ||
+      file.mimetype === "text/x-markdown" ||
+      file.originalname.toLowerCase().endsWith(".md") ||
+      file.originalname.toLowerCase().endsWith(".markdown");
+
+    if (isPdf || isMd) {
       cb(null, true);
     } else {
-      cb(new Error("Invalid file format. Only PDF files are allowed."));
+      cb(new Error("Invalid file format. Only PDF (.pdf) and Markdown (.md, .markdown) files are allowed."));
     }
   },
 });

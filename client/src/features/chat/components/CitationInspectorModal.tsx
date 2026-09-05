@@ -4,7 +4,7 @@ import React from 'react';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { CitationItem } from '@/lib/api/types';
-import { FileText, Globe, AlignLeft, ExternalLink, Quote, MapPin, Video } from 'lucide-react';
+import { FileText, Globe, AlignLeft, ExternalLink, Quote, MapPin, Video, FileCode } from 'lucide-react';
 
 interface CitationInspectorModalProps {
   citation: CitationItem | null;
@@ -21,6 +21,7 @@ export function CitationInspectorModal({
 
   const loc = citation.locationMetadata || {};
   const isPdf = citation.sourceType === 'PDF';
+  const isMarkdown = citation.sourceType === 'MARKDOWN';
   const isWebsite = citation.sourceType === 'WEBSITE';
   const isText = citation.sourceType === 'TEXT';
   const isYoutube = citation.sourceType === 'YOUTUBE';
@@ -30,6 +31,13 @@ export function CitationInspectorModal({
       ? String(loc.pageNumber)
       : loc.page !== undefined
       ? String(loc.page)
+      : null;
+
+  const markdownBreadcrumbs =
+    Array.isArray(loc.sectionBreadcrumbs) && loc.sectionBreadcrumbs.length > 0
+      ? loc.sectionBreadcrumbs.join(' › ')
+      : typeof loc.header === 'string'
+      ? loc.header
       : null;
 
   const targetUrl = typeof loc.url === 'string' ? loc.url : null;
@@ -65,6 +73,7 @@ export function CitationInspectorModal({
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-900 text-white p-3.5 border border-slate-800 text-xs shadow-xs">
           <div className="flex items-center gap-2 font-bold font-heading">
             {isPdf && <FileText className="h-4 w-4 text-sky-400" />}
+            {isMarkdown && <FileCode className="h-4 w-4 text-violet-400" />}
             {isWebsite && <Globe className="h-4 w-4 text-emerald-400" />}
             {isText && <AlignLeft className="h-4 w-4 text-indigo-400" />}
             {isYoutube && <Video className="h-4 w-4 text-rose-400" />}
@@ -74,10 +83,11 @@ export function CitationInspectorModal({
           <div className="flex items-center gap-1.5 font-mono text-[11px] text-amber-300 font-semibold bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-lg">
             <MapPin className="h-3.5 w-3.5" />
             {isPdf && pdfPage !== null && <span>Page {pdfPage}</span>}
+            {isMarkdown && markdownBreadcrumbs && <span>{markdownBreadcrumbs}</span>}
             {isWebsite && sectionTitle && <span>{sectionTitle}</span>}
             {isText && lineRange && <span>Lines {lineRange}</span>}
             {isYoutube && timestamp && <span>Timestamp {timestamp}</span>}
-            {!pdfPage && !sectionTitle && !lineRange && !timestamp && <span>Source Chunk #{citation.chunkId.slice(0, 8)}</span>}
+            {!pdfPage && !markdownBreadcrumbs && !sectionTitle && !lineRange && !timestamp && <span>Source Chunk #{citation.chunkId.slice(0, 8)}</span>}
           </div>
         </div>
 
@@ -87,10 +97,18 @@ export function CitationInspectorModal({
             <Quote className="h-3.5 w-3.5 text-sky-600" />
             <span>Retrieved Source Passage Snippet</span>
           </div>
-          <p className="italic leading-relaxed font-sans border-l-2 border-sky-500 pl-3.5 py-1 text-slate-700">
-            &quot;{citation.snippet}&quot;
-          </p>
+          <div className="italic leading-relaxed font-sans border-l-2 border-sky-500 pl-3.5 py-1 text-slate-700 whitespace-pre-wrap font-mono text-xs">
+            {citation.snippet}
+          </div>
         </div>
+
+        {/* Markdown Breadcrumbs Detail */}
+        {isMarkdown && markdownBreadcrumbs && (
+          <div className="rounded-xl bg-violet-50/60 p-3 border border-violet-200/80 text-xs flex justify-between items-center">
+            <span className="font-semibold text-violet-700 font-heading">Section Breadcrumb Trail:</span>
+            <span className="font-mono font-bold text-violet-950">{markdownBreadcrumbs}</span>
+          </div>
+        )}
 
         {/* Website / YouTube Direct Clickable URL Link */}
         {(isWebsite || isYoutube) && targetUrl && (
@@ -110,7 +128,7 @@ export function CitationInspectorModal({
           </div>
         )}
 
-        {/* PDF / Text Location Details */}
+        {/* PDF Location Details */}
         {isPdf && pdfPage !== null && (
           <div className="rounded-xl bg-white p-3 border border-slate-200 text-xs flex justify-between items-center">
             <span className="font-semibold text-slate-500 font-heading">Document Page:</span>
@@ -118,6 +136,7 @@ export function CitationInspectorModal({
           </div>
         )}
 
+        {/* Text Line Range */}
         {isText && lineRange && (
           <div className="rounded-xl bg-white p-3 border border-slate-200 text-xs flex justify-between items-center">
             <span className="font-semibold text-slate-500 font-heading">Source Line Range:</span>

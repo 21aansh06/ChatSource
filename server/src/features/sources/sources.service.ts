@@ -40,13 +40,16 @@ export class SourcesService {
     if (file) {
       const uploadPayload = parseMulterFile(file);
       const fileId = randomUUID();
-      const storageKey = generateStorageKey(userId, fileId, 'pdf');
+      const ext = input.type === SourceType.MARKDOWN ? 'md' : 'pdf';
+      const storageKey = generateStorageKey(userId, fileId, ext);
 
       fileKey = await StorageService.upload(storageKey, uploadPayload);
       mimeType = uploadPayload.mimeType;
       fileSize = uploadPayload.size;
     } else if (input.type === SourceType.PDF && !fileKey) {
       throw new Error('PDF file upload is required for PDF source type.');
+    } else if (input.type === SourceType.MARKDOWN && !fileKey && !input.rawText) {
+      throw new Error('Markdown file upload or raw markdown text is required for MARKDOWN source type.');
     } else if (input.type === SourceType.YOUTUBE && !input.url) {
       throw new Error('YouTube URL is required for YOUTUBE source type.');
     }
