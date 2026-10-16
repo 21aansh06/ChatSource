@@ -8,6 +8,11 @@ import {
   AskQuestionInput,
   AskQuestionResponse,
   UserProfile,
+  Quiz,
+  CreateQuizInput,
+  SubmitQuizAttemptInput,
+  QuizAttemptResult,
+  QuizAttempt,
 } from './types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:5000';
@@ -238,5 +243,82 @@ export const apiClient = {
 
     getStreamUrl: (notebookId: string, sessionId: string): string =>
       `${API_BASE_URL.replace(/\/$/, '')}/api/notebooks/${notebookId}/chat/stream/${sessionId}`,
+  },
+
+  // Quiz Endpoints
+  quizzes: {
+    generate: (
+      notebookId: string,
+      sourceId: string,
+      input: CreateQuizInput,
+      getToken?: TokenGetter
+    ): Promise<{ message: string; quiz: Quiz }> =>
+      fetchApi(
+        `/api/notebooks/${notebookId}/sources/${sourceId}/quizzes`,
+        {
+          method: 'POST',
+          body: JSON.stringify(input),
+        },
+        getToken
+      ),
+
+    listBySource: (
+      notebookId: string,
+      sourceId: string,
+      getToken?: TokenGetter
+    ): Promise<Quiz[]> =>
+      fetchApi(
+        `/api/notebooks/${notebookId}/sources/${sourceId}/quizzes`,
+        { method: 'GET' },
+        getToken
+      ),
+
+    getById: (
+      notebookId: string,
+      quizId: string,
+      getToken?: TokenGetter
+    ): Promise<Quiz> =>
+      fetchApi(
+        `/api/notebooks/${notebookId}/quizzes/${quizId}`,
+        { method: 'GET' },
+        getToken
+      ),
+
+    delete: (
+      notebookId: string,
+      quizId: string,
+      getToken?: TokenGetter
+    ): Promise<{ success: boolean; message: string }> =>
+      fetchApi(
+        `/api/notebooks/${notebookId}/quizzes/${quizId}`,
+        { method: 'DELETE' },
+        getToken
+      ),
+
+    submitAttempt: (
+      notebookId: string,
+      quizId: string,
+      input: SubmitQuizAttemptInput,
+      getToken?: TokenGetter
+    ): Promise<QuizAttemptResult> =>
+      fetchApi(
+        `/api/notebooks/${notebookId}/quizzes/${quizId}/attempts`,
+        {
+          method: 'POST',
+          body: JSON.stringify(input),
+        },
+        getToken
+      ),
+
+    getAttempts: (
+      notebookId: string,
+      quizId: string,
+      getToken?: TokenGetter
+    ): Promise<QuizAttempt[]> =>
+      fetchApi(
+        `/api/notebooks/${notebookId}/quizzes/${quizId}/attempts`,
+        { method: 'GET' },
+        getToken
+      ),
   },
 };

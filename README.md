@@ -258,10 +258,9 @@ If you are exploring the project for the first time, this is the best path:
 
 This project has a strong base for a private research assistant. Future improvements could include:
 
-- adding tools such as summary and quiz[in progress]
+- adding tools such as summary[in progress]
 - voice input
-- more ingestion formats
-- stronger ranking and retrieval tuning
+- podcast 
 
 ## License
 

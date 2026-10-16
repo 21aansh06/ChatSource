@@ -155,11 +155,10 @@ export function SourceList({
               <button
                 key={type}
                 onClick={() => setTypeFilter(type)}
-                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${
-                  typeFilter === type
+                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${typeFilter === type
                     ? 'bg-slate-900 text-white shadow-2xs'
                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
+                  }`}
               >
                 {type}
               </button>
@@ -186,8 +185,8 @@ export function SourceList({
                     isAllSelected
                       ? "bg-sky-500 border-sky-600 text-white shadow-2xs"
                       : selectedSourceIds.length > 0
-                      ? "bg-sky-100 border-sky-400 text-sky-700"
-                      : "bg-white border-slate-300 text-transparent"
+                        ? "bg-sky-100 border-sky-400 text-sky-700"
+                        : "bg-white border-slate-300 text-transparent"
                   )}>
                     <Check className="h-3 w-3 stroke-[2.5]" />
                   </div>
@@ -286,6 +285,7 @@ export function SourceList({
               <SourceCard
                 key={source.id}
                 source={source}
+                notebookId={notebookId}
                 onDelete={(src) => setDeletingSource(src)}
                 isSelected={selectedSourceIds.length === 0 || selectedSourceIds.includes(source.id)}
                 onToggleSelect={onToggleSource}

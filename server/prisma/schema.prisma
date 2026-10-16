@@ -31,6 +31,19 @@ enum UserPlan {
   PAID
 }
 
+enum QuizDifficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+enum QuizStatus {
+  PENDING
+  GENERATING
+  COMPLETED
+  FAILED
+}
+
 model User {
   id        String   @id
   email     String   @unique
@@ -77,6 +90,7 @@ model Notebook {
   sources      Source[]
   chunks       Chunk[]
   chatSessions ChatSession[]
+  quizzes      Quiz[]
 
   @@index([userId])
   @@map("notebooks")
@@ -104,6 +118,7 @@ model Source {
   notebook      Notebook        @relation(fields: [notebookId], references: [id], onDelete: Cascade)
   chunks        Chunk[]
   ingestionJobs IngestionJob[]
+  quizzes       Quiz[]
 
   @@index([notebookId])
   @@index([userId])
@@ -185,4 +200,48 @@ model ChatMessage {
 
   @@index([sessionId])
   @@map("chat_messages")
+}
+
+model Quiz {
+  id             String          @id @default(uuid())
+  sourceId       String
+  notebookId     String
+  userId         String          // Multi-tenant Clerk userId isolation
+  title          String          @default("Generating Quiz...")
+  description    String?
+  status         QuizStatus      @default(PENDING)
+  errorMessage   String?
+  difficulty     QuizDifficulty  @default(MEDIUM)
+  totalQuestions Int             @default(5)
+  questions      Json?           // Array of QuizQuestion objects (populated when status === COMPLETED)
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  source         Source          @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  notebook       Notebook        @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+  attempts       QuizAttempt[]
+
+  @@index([sourceId])
+  @@index([notebookId])
+  @@index([userId])
+  @@index([status])
+  @@map("quizzes")
+}
+
+model QuizAttempt {
+  id             String    @id @default(uuid())
+  quizId         String
+  userId         String    // Clerk userId
+  score          Int       // e.g. 4
+  totalQuestions Int       // e.g. 5
+  userAnswers    Json      // Map of { questionId: selectedOptionIndex }
+  timeSpentSec   Int?
+  completedAt    DateTime  @default(now())
+
+  quiz           Quiz      @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([quizId])
+  @@index([userId])
+  @@map("quiz_attempts")
 }

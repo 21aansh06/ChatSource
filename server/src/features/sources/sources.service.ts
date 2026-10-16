@@ -104,6 +104,7 @@ export class SourcesService {
       },
       select: {
         id: true,
+        notebookId: true,
         title: true,
         type: true,
         status: true,

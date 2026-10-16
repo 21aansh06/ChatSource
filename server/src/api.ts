@@ -7,6 +7,7 @@ import { notebookRoutes } from './features/notebooks/notebooks.routes.js';
 import { sourceRoutes, directSourceRoutes } from './features/sources/sources.routes.js';
 import { chatRoutes } from './features/chat/chat.routes.js';
 import { userRoutes } from './features/users/users.routes.js';
+import { quizzesRoutes } from './features/quizzes/quizzes.routes.js';
 
 export function createApp() {
   const app = express();
@@ -23,8 +24,9 @@ export function createApp() {
 
   app.use(clerkMiddleware());
 
-  app.use('/api/users', userRoutes );
+  app.use('/api/users', userRoutes);
   app.use('/api/notebooks', notebookRoutes);
+  app.use('/api/notebooks', quizzesRoutes);
   app.use('/api/notebooks/:notebookId/sources', sourceRoutes);
   app.use('/api/notebooks/:notebookId/chat', chatRoutes);
   app.use('/api/sources', directSourceRoutes);

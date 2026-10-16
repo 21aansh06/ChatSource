@@ -182,3 +182,78 @@ export type SSEChatEvent =
   | SSEEventCitations
   | SSEEventComplete
   | SSEEventError;
+
+export type QuizDifficulty = 'EASY' | 'MEDIUM' | 'HARD';
+export type QuizStatus = 'PENDING' | 'GENERATING' | 'COMPLETED' | 'FAILED';
+
+export interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctOptionIndex: number;
+  explanation: string;
+  locationHint?: string;
+  difficulty?: QuizDifficulty;
+}
+
+export interface QuizAttempt {
+  id: string;
+  quizId: string;
+  userId: string;
+  score: number;
+  totalQuestions: number;
+  userAnswers: Record<string, number>;
+  timeSpentSec?: number | null;
+  completedAt: string;
+}
+
+export interface Quiz {
+  id: string;
+  sourceId: string;
+  notebookId: string;
+  userId: string;
+  title: string;
+  description?: string | null;
+  status: QuizStatus;
+  errorMessage?: string | null;
+  difficulty: QuizDifficulty;
+  totalQuestions: number;
+  questions?: QuizQuestion[] | null;
+  createdAt: string;
+  updatedAt: string;
+  attempts?: QuizAttempt[];
+  source?: {
+    id: string;
+    title: string;
+    type: SourceType;
+  };
+}
+
+export interface CreateQuizInput {
+  questionCount?: number;
+  difficulty?: QuizDifficulty;
+  provider?: 'openai' | 'gemini';
+}
+
+export interface SubmitQuizAttemptInput {
+  answers: Record<string, number>;
+  timeSpentSec?: number;
+}
+
+export interface QuestionGradedBreakdown {
+  questionId: string;
+  question: string;
+  selectedOptionIndex: number | null;
+  correctOptionIndex: number;
+  isCorrect: boolean;
+  explanation: string;
+  locationHint?: string;
+}
+
+export interface QuizAttemptResult {
+  attempt: QuizAttempt;
+  score: number;
+  totalQuestions: number;
+  percentage: number;
+  breakdown: QuestionGradedBreakdown[];
+}
